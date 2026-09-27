@@ -1,6 +1,9 @@
 mod gpu;
 mod iou;
+mod mesh;
+mod metrics;
 mod shader;
+mod surface;
 
 use std::{
     fs,
@@ -16,7 +19,10 @@ use clap::{Args, Parser, Subcommand};
 use serde_json::json;
 
 #[derive(Parser)]
-#[command(version, about = "Evaluate aligned GLSL SDFs using GPU volumetric IoU")]
+#[command(
+    version,
+    about = "Evaluate aligned GLSL SDFs with volume and surface metrics"
+)]
 struct Cli {
     #[command(subcommand)]
     command: Command,
@@ -26,6 +32,22 @@ struct Cli {
 enum Command {
     /// Measure volume overlap within an explicit shared bounding box.
     Iou(IouArgs),
+    /// Sample zero-isosurfaces and compute Chamfer distance and F-scores.
+    Surface(SurfaceArgs),
+}
+
+#[derive(Args)]
+struct SurfaceArgs {
+    #[command(flatten)]
+    common: IouArgs,
+    /// Number of independent area-weighted samples per surface.
+    #[arg(long, default_value_t = 100_000)]
+    samples: usize,
+    #[arg(long, default_value_t = 42)]
+    seed: u64,
+    /// Positive distance thresholds in input coordinate units.
+    #[arg(long, value_delimiter = ',', required = true)]
+    thresholds: Vec<f64>,
 }
 
 #[derive(Args)]
@@ -37,6 +59,7 @@ struct IouArgs {
     /// xmin,ymin,zmin,xmax,ymax,zmax; neither input is transformed.
     #[arg(long, value_parser = parse_bounds, allow_hyphen_values = true)]
     bounds: [f32; 6],
+    /// Cells per axis: voxel centers for IoU, cell corners for surface extraction.
     #[arg(long, default_value_t = 256)]
     resolution: u32,
     /// Maximum sample positions per batch; clamped to device limits.
@@ -58,7 +81,14 @@ fn parse_bounds(text: &str) -> Result<[f32; 6], String> {
         .map_err(|_| "expected six comma-separated coordinates".to_owned())
 }
 
-fn run(args: IouArgs) -> Result<bool> {
+fn run(command: Command) -> Result<bool> {
+    let (args, surface_options) = match command {
+        Command::Iou(args) => (args, None),
+        Command::Surface(args) => (
+            args.common,
+            Some((args.samples, args.seed, args.thresholds)),
+        ),
+    };
     let started = Instant::now();
     let settings = iou::Settings {
         bounds: args.bounds,
@@ -75,17 +105,46 @@ fn run(args: IouArgs) -> Result<bool> {
         "requested_batch_size": settings.batch_size,
         "iou": null,
     });
-    let result = panic::catch_unwind(AssertUnwindSafe(|| -> Result<iou::Evaluation> {
+    if let Some((samples, seed, thresholds)) = &surface_options {
+        report.as_object_mut().unwrap().remove("iou");
+        report["metric"] = json!("surface");
+        report["metrics"] = serde_json::Value::Null;
+        report["samples_per_surface"] = json!(samples);
+        report["seed"] = json!(seed);
+        report["thresholds"] = json!(thresholds);
+        report["meshing"] = json!("marching_tetrahedra");
+        report["sampling"] = json!("area_weighted_chacha8_independent");
+        report["projection"] = json!(false);
+    }
+    let result = panic::catch_unwind(AssertUnwindSafe(|| -> Result<serde_json::Value> {
         settings.validate().context("invalid_settings")?;
+        if let Some((samples, _, thresholds)) = &surface_options {
+            surface::validate(*samples, thresholds).context("invalid_settings")?;
+        }
         report["voxel_size"] = json!(settings.voxel_size());
         let reference = fs::read_to_string(&args.reference).context("reference_read_failed")?;
         let prediction = fs::read_to_string(&args.prediction).context("prediction_read_failed")?;
-        iou::evaluate(&reference, &prediction, settings)
+        if let Some((samples, seed, thresholds)) = &surface_options {
+            surface::evaluate(
+                &reference,
+                &prediction,
+                settings,
+                *samples,
+                *seed,
+                thresholds,
+                &mut report,
+            )
+        } else {
+            Ok(serde_json::to_value(iou::evaluate(
+                &reference,
+                &prediction,
+                settings,
+            )?)?)
+        }
     }));
     let valid = match result {
-        Ok(Ok(evaluation)) => {
-            let valid = evaluation.status == "ok";
-            let value = serde_json::to_value(evaluation)?;
+        Ok(Ok(value)) => {
+            let valid = value["status"] == "ok";
             report
                 .as_object_mut()
                 .unwrap()
@@ -123,8 +182,7 @@ fn run(args: IouArgs) -> Result<bool> {
 }
 
 fn main() -> ExitCode {
-    let Command::Iou(args) = Cli::parse().command;
-    match run(args) {
+    match run(Cli::parse().command) {
         Ok(true) => ExitCode::SUCCESS,
         Ok(false) => ExitCode::FAILURE,
         Err(error) => {

@@ -1,7 +1,9 @@
 # sdf-eval
 
-GPU volumetric IoU for two aligned GLSL snippets defining `float sdf(vec3 p)`.
-The evaluator uses Rust, wgpu 30, and Naga, with Vulkan preferred on Linux.
+Volumetric IoU, Chamfer Distance, and F-score for two aligned GLSL snippets
+defining `float sdf(vec3 p)`. Shader evaluation uses Rust, wgpu 30, and Naga,
+with Vulkan preferred on Linux; surface meshing and nearest-neighbor queries
+run on the CPU.
 It does not translate, rotate, or rescale either input. There is no shader
 hash calculation or validation.
 
@@ -31,7 +33,28 @@ Input snippets must be self-contained, Naga-compatible GLSL. Do not supply
 The tool supplies a GLSL 450 compute entry point and its resources. A snippet
 that works with a fragment renderer may use features unavailable in compute.
 
-## Metric
+## Surface metrics
+
+Use `sdf-eval surface` to compute both Chamfer Distance and F-score from
+independent area-weighted samples of extracted zero-isosurfaces:
+
+```sh
+./target/debug/sdf-eval surface \
+  --reference dataset/Sphere/sdf.glsl \
+  --prediction predictions/Sphere/sdf.glsl \
+  --bounds=-2,-2,-2,2,2,2 \
+  --resolution 128 --samples 100000 --seed 42 \
+  --thresholds 0.01,0.02,0.05 \
+  --output results/Sphere-surface.json
+```
+
+Thresholds are required in input coordinate units. Unlike IoU, this mode reads
+back scalar fields and uses CPU marching tetrahedra and KD-trees. There is no
+surface projection. Unsigned fields may yield `no_surface_extracted`.
+See [the surface protocol](SURFACE.md) for definitions, sampling, resource costs,
+failure semantics, and convergence checks.
+
+## IoU metric
 
 For a resolution N, volume samples are taken at voxel centers:
 
@@ -58,7 +81,7 @@ Unsigned distance estimates, open surfaces, and thin structures can render
 successfully while providing no reliable occupied volume for this metric.
 The evaluator does not thicken surfaces or infer interiors.
 
-## GPU pipeline
+## IoU GPU pipeline
 
 Each input is compiled independently, avoiding collisions between helper
 functions and global variables. Each batch executes:
@@ -75,7 +98,7 @@ Naga 30 lowers GLSL `barrier()` to all barrier flags, unnecessarily requesting
 subgroup capabilities. The compiler wrapper corrects these to workgroup
 barriers before wgpu validation, matching GLSL compute shared-memory semantics.
 
-## Results and failure behavior
+## IoU results and failure behavior
 
 JSON includes the schema/tool versions, input paths, bounds, resolution, voxel
 size, effective batch size, adapter/driver information, counts, IoU, and total

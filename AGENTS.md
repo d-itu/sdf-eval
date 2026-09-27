@@ -2,9 +2,9 @@
 
 ## Scope
 
-This repository contains prepared image inputs and GPU volumetric IoU evaluation
-for a benchmark of LLM-generated SDF shaders. There is no LLM API integration,
-point-cloud metric, or benchmark orchestration runner.
+This repository contains prepared image inputs and GPU volumetric IoU plus
+surface metrics (Chamfer Distance and F-score) for a benchmark of LLM-generated
+SDF shaders. There is no LLM API integration or benchmark orchestration runner.
 
 The dataset comes from `tovacinni/sdf-explorer`. Rendering uses the Rust
 `sdf-view` renderer. Python scripts handle batch orchestration, camera fitting,

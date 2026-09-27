@@ -53,9 +53,9 @@ the score applies only within the supplied box.
 
 Run `cargo test --locked -- --include-ignored` for GPU integration tests.
 See [the evaluator documentation](crates/sdf-eval/README.md) for sampling,
-CLI options, reporting, and shader limitations. Renderable surfaces are not
-necessarily signed solids suitable for volume IoU. Chamfer Distance and
-F-score are not implemented.
+CLI options, reporting, and shader limitations. Renderable surfaces are not necessarily signed solids suitable for volume IoU.
+Surface metrics operate on extracted zero-isosurfaces and have their own
+resolution and sampling error; see [the evaluator documentation](crates/sdf-eval/README.md).
 
 ## Source
 

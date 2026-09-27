@@ -132,6 +132,26 @@ impl Gpu {
         })
     }
 
+    pub fn read_floats(&self, buffer: &wgpu::Buffer, count: u32) -> Result<Vec<f32>> {
+        let slice = buffer.slice(..u64::from(count) * 4);
+        let (sender, receiver) = oneshot::channel();
+        slice.map_async(wgpu::MapMode::Read, move |result| {
+            let _ = sender.send(result);
+        });
+        self.device.poll(wgpu::PollType::wait_indefinitely())?;
+        block_on(receiver).map_err(|_| anyhow!("readback callback dropped"))??;
+        let mapped = slice.get_mapped_range()?;
+        let values = mapped
+            .as_chunks::<4>()
+            .0
+            .iter()
+            .map(|bytes| f32::from_le_bytes(*bytes))
+            .collect();
+        drop(mapped);
+        buffer.unmap();
+        Ok(values)
+    }
+
     pub fn read_counts(&self, buffer: &wgpu::Buffer) -> Result<[u32; 8]> {
         let slice = buffer.slice(..);
         let (sender, receiver) = oneshot::channel();
