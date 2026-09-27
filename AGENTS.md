@@ -2,9 +2,9 @@
 
 ## Scope
 
-This repository prepares image inputs for a future benchmark of LLM-generated
-SDF shaders. The current scope is dataset preparation only. There is no LLM
-API integration, scoring pipeline, or benchmark runner.
+This repository contains prepared image inputs and GPU volumetric IoU evaluation
+for a benchmark of LLM-generated SDF shaders. There is no LLM API integration,
+point-cloud metric, or benchmark orchestration runner.
 
 The dataset comes from `tovacinni/sdf-explorer`. Rendering uses the Rust
 `sdf-view` renderer. Python scripts handle batch orchestration, camera fitting,
@@ -128,20 +128,32 @@ preparation scripts support
 focused rerendering, camera fitting, and validation with gallery generation.
 
 
-## Planned IoU evaluation
+## IoU evaluation
 
-The next implementation is a Rust crate at `crates/sdf-eval/`, using wgpu and
-Naga for GPU evaluation. It is not implemented yet. Reference and prediction
-shaders are assumed to be aligned; do not automatically translate, rotate, or
-rescale them. Use a shared, explicitly configurable bounding box and default
-to 256 samples per axis at voxel centers.
+`crates/sdf-eval/` implements GPU volumetric IoU with wgpu 30 and Naga in the
+root Cargo workspace. Build with `cargo build --locked -p sdf-eval`.
+Reference and prediction shaders must already be aligned; never translate,
+rotate, or rescale them automatically. `--bounds=xmin,ymin,zmin,xmax,ymax,zmax`
+is required. The default is 256 voxel centers per axis, with `sdf(p) < 0`
+defining the interior. The evaluator does not calculate or validate hashes.
 
-Evaluate the reference occupancy in one compute pass, then evaluate the
-prediction and reduce intersection and union counts on the GPU. Read back
-counts rather than volumetric data. Record the bounds, resolution, counts,
-non-finite values, and boundary occupancy in the result. An empty union is an
-explicit status, not a perfect score. The metric measures IoU within the
-specified bounds; boundary occupancy can indicate truncation.
+Separate reference and prediction compute pipelines avoid helper-name
+collisions. GPU passes reduce intersection, union, invalid-value, and boundary
+counts; only eight counters per batch are read back, accumulated in `u64`.
+Empty unions and non-finite values return null IoU and a nonzero exit code.
+Boundary occupancy is a separate flag: the score still measures overlap within
+the supplied box. Six faces are sampled separately and do not enter IoU counts.
+
+Naga 30's GLSL barrier lowering requires a correction in `gpu.rs`: use
+workgroup barriers instead of all barrier flags. Keep this workaround scoped
+to GLSL compute semantics and reconsider it when updating Naga.
+
+Run `cargo test --locked -- --include-ignored` with a working compute adapter
+for the complete integration tests. GPU tests are ignored by default. All 63
+dataset shaders have compiled and executed, but some shaders have thin,
+unsigned, or otherwise unsuitable interiors for volume IoU. Do not reinterpret
+an empty union as a perfect match or assume a renderable shader has a valid
+signed solid. See `crates/sdf-eval/README.md` for protocol and known limitations.
 
 Keep generated predictions and evaluation results outside the reference
 dataset, in the ignored root-level `predictions/` and `results/` directories.

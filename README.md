@@ -1,4 +1,4 @@
-# SDF benchmark dataset
+# SDF reconstruction benchmark
 
 Each directory under `dataset/` contains one model's final `sdf.glsl`,
 `render.png`, and `metadata.json`. Upstream provenance and shader adaptations
@@ -29,6 +29,33 @@ The build uses the default Cargo dev profile and writes build outputs to
 `target/` inside this repository. The shell preserves the user's `CARGO_HOME`
 and `XDG_CACHE_HOME` settings. Nix manages its own store. `.envrc` supports
 optional direnv use.
+
+## GPU volumetric IoU
+
+The root Cargo workspace contains `crates/sdf-eval`. In the development shell:
+
+```sh
+cargo build --locked -p sdf-eval
+./target/debug/sdf-eval iou \
+  --reference dataset/Sphere/sdf.glsl \
+  --prediction predictions/Sphere/sdf.glsl \
+  --bounds=-2,-2,-2,2,2,2 \
+  --resolution 256 \
+  --output results/Sphere.json
+```
+
+Inputs must already be aligned. Bounds are required; the default resolution is
+256 voxel centers per axis. The GPU classifies `sdf(p) < 0` and reduces counts,
+returning JSON without exporting voxel data or calculating shader hashes.
+Omit `--output` to print JSON to stdout. Empty unions and NaN/Inf produce null
+IoU and a nonzero exit code. Boundary occupancy is reported separately because
+the score applies only within the supplied box.
+
+Run `cargo test --locked -- --include-ignored` for GPU integration tests.
+See [the evaluator documentation](crates/sdf-eval/README.md) for sampling,
+CLI options, reporting, and shader limitations. Renderable surfaces are not
+necessarily signed solids suitable for volume IoU. Chamfer Distance and
+F-score are not implemented.
 
 ## Source
 
