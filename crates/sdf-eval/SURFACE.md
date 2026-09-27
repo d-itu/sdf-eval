@@ -73,9 +73,12 @@ f_score(t) = 2 * precision(t) * recall(t) / (precision(t) + recall(t))
 
 F-score is zero when both precision and recall are zero. Threshold comparisons
 are inclusive. The JSON `metrics` object contains both Chamfer variants, both
-directional mean distances, and `f_scores` entries with threshold, precision,
-recall, and F-score. The squared variant has squared coordinate units and is
-not the square of `chamfer_l2_mean`.
+directional mean distances, three HD95 values, and `f_scores` entries with
+threshold, precision, recall, and F-score. The directed HD95 values are the
+95th percentiles of the directed Euclidean distances; `hd95_symmetric` is the
+95th percentile after concatenating both directions. Percentiles use linear
+interpolation at `0.95 * (count - 1)`. The squared variant has squared
+coordinate units and is not the square of `chamfer_l2_mean`.
 
 These are point-cloud estimates of geometric surface metrics. Independently
 sampled identical shapes normally have positive CD and can have F-score below
