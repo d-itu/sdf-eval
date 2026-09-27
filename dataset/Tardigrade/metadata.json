@@ -1,0 +1,72 @@
+{
+  "name": "Tardigrade",
+  "category": "Animal",
+  "source": {
+    "repository": "https://github.com/tovacinni/sdf-explorer",
+    "commit": "c8b1b39796d18d2ad3e7442639ef51bf986eb187",
+    "path": "data-files/sdf/Animal/Tardigrade.glsl",
+    "url": "https://raw.githubusercontent.com/tovacinni/sdf-explorer/c8b1b39796d18d2ad3e7442639ef51bf986eb187/data-files/sdf/Animal/Tardigrade.glsl",
+    "git_blob_sha1": "7b31af0bdd4aa5ba852a0eeb52365f21df69a585",
+    "sha256": "3aed823a252695e244eb5a6318399b4a0d0c5102a1f89cb0c78d85f16d208c2e",
+    "notices": [
+      "/*\nCopyright 2018 Zguerrero @zguerrero\nLicense Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.\nLink: https://www.shadertoy.com/view/ldcyW4\n*/",
+      "/******************************************************************************\n This work is a derivative of work by zguerrero used under CC BY-NC-SA 3.0.\n This work is licensed also under CC BY-NC-SA 3.0 by NVIDIA CORPORATION.\n ******************************************************************************/"
+    ]
+  },
+  "shader": "sdf.glsl",
+  "modifications": [
+    "Define the G3D pi constant locally."
+  ],
+  "status": "rendered",
+  "shader_sha256": "92cdb69c77fc47b10d17b8485abf4f7ac7832f151cd625cc07fa1afd8bd5bbb0",
+  "render": {
+    "width": 512,
+    "height": 512,
+    "camera_position": [
+      0.867128,
+      0.451718,
+      1.198328
+    ],
+    "camera_target": [
+      0.008701,
+      -0.120567,
+      0.053758
+    ],
+    "camera_up": [
+      0,
+      1,
+      0
+    ],
+    "fov": 45,
+    "light_direction": [
+      -0.5,
+      0.8,
+      1
+    ],
+    "light_color": [
+      1,
+      1,
+      1
+    ],
+    "light_intensity": 0.85,
+    "ambient": 0.15
+  },
+  "renderer": {
+    "repository": "https://github.com/d-itu/sdf-view",
+    "commit": "51ff7f4f9e026d852520263374056a6af0740bbc",
+    "profile": "dev"
+  },
+  "render_seconds": 0.427,
+  "image_check": {
+    "foreground_bounds": [
+      72,
+      91,
+      436,
+      424
+    ],
+    "foreground_fraction": 0.2985343933105469,
+    "touches_border": false
+  },
+  "framing": "Camera fitted to foreground bounds; shader coordinates unchanged.",
+  "visual_review": "pending"
+}

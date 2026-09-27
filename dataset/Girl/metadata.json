@@ -1,0 +1,74 @@
+{
+  "name": "Girl",
+  "category": "Animal",
+  "source": {
+    "repository": "https://github.com/tovacinni/sdf-explorer",
+    "commit": "c8b1b39796d18d2ad3e7442639ef51bf986eb187",
+    "path": "data-files/sdf/Animal/Girl.glsl",
+    "url": "https://raw.githubusercontent.com/tovacinni/sdf-explorer/c8b1b39796d18d2ad3e7442639ef51bf986eb187/data-files/sdf/Animal/Girl.glsl",
+    "git_blob_sha1": "872cede44827729b72ceb6ed1c2db463b5c3cdad",
+    "sha256": "868b34654729593900509b02bbd61ab37295ac4654a72046cc85885f240f9da8",
+    "notices": [
+      "/*\nCopyright 2020 Inigo Quilez @iq\nLicense Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.\nLink: https://www.shadertoy.com/view/WsSBzh\nArchive Link: https://web.archive.org/web/20201128010927/https://www.shadertoy.com/view/WsSBzh\n */",
+      "/******************************************************************************\n This work is a derivative of work by Inigo Quilez used under CC BY-NC-SA 3.0.\n This work is licensed also under CC BY-NC-SA 3.0 by NVIDIA CORPORATION.\n ******************************************************************************/"
+    ]
+  },
+  "shader": "sdf.glsl",
+  "modifications": [
+    "Freeze G3D scene time at 0 seconds.",
+    "Remove unused texture noise helpers; the active geometry never calls them."
+  ],
+  "status": "rendered",
+  "shader_sha256": "9143b5e6f1c434e4ffb78c270fd4081e832dba1d78cf4825e1e9b14faa8bef87",
+  "render": {
+    "width": 512,
+    "height": 512,
+    "camera_position": [
+      2.072971,
+      1.171948,
+      2.705873
+    ],
+    "camera_target": [
+      0.067492,
+      -0.165038,
+      0.0319
+    ],
+    "camera_up": [
+      0,
+      1,
+      0
+    ],
+    "fov": 45,
+    "light_direction": [
+      -0.5,
+      0.8,
+      1
+    ],
+    "light_color": [
+      1,
+      1,
+      1
+    ],
+    "light_intensity": 0.85,
+    "ambient": 0.15
+  },
+  "renderer": {
+    "repository": "https://github.com/d-itu/sdf-view",
+    "commit": "51ff7f4f9e026d852520263374056a6af0740bbc",
+    "profile": "dev"
+  },
+  "render_seconds": 0.65,
+  "scene_time_seconds": 0,
+  "image_check": {
+    "foreground_bounds": [
+      125,
+      70,
+      385,
+      439
+    ],
+    "foreground_fraction": 0.2672576904296875,
+    "touches_border": false
+  },
+  "framing": "Camera fitted to foreground bounds; shader coordinates unchanged.",
+  "visual_review": "pending"
+}

@@ -1,0 +1,70 @@
+{
+  "name": "Boat",
+  "category": "Vehicle",
+  "source": {
+    "repository": "https://github.com/tovacinni/sdf-explorer",
+    "commit": "c8b1b39796d18d2ad3e7442639ef51bf986eb187",
+    "path": "data-files/sdf/Vehicle/Boat.glsl",
+    "url": "https://raw.githubusercontent.com/tovacinni/sdf-explorer/c8b1b39796d18d2ad3e7442639ef51bf986eb187/data-files/sdf/Vehicle/Boat.glsl",
+    "git_blob_sha1": "77c7634cb789a2497e5432f0f73bf07472011720",
+    "sha256": "370885e99070d4066cc06d75264136d170206858d5f729697720738f24e94739",
+    "notices": [
+      "/*\nCopyright 2017 @dr2\nLicense Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.\nLink: https://www.shadertoy.com/view/ll2BzR\n*/",
+      "/******************************************************************************\n This work is a derivative of work by dr2 used under CC BY-NC-SA 3.0.\n This work is licensed also under CC BY-NC-SA 3.0 by NVIDIA CORPORATION.\n ******************************************************************************/"
+    ]
+  },
+  "shader": "sdf.glsl",
+  "modifications": [],
+  "status": "rendered",
+  "shader_sha256": "370885e99070d4066cc06d75264136d170206858d5f729697720738f24e94739",
+  "render": {
+    "width": 512,
+    "height": 512,
+    "camera_position": [
+      1.271274,
+      0.898864,
+      1.871332
+    ],
+    "camera_target": [
+      -0.083575,
+      -0.004369,
+      0.064866
+    ],
+    "camera_up": [
+      0,
+      1,
+      0
+    ],
+    "fov": 45,
+    "light_direction": [
+      -0.5,
+      0.8,
+      1
+    ],
+    "light_color": [
+      1,
+      1,
+      1
+    ],
+    "light_intensity": 0.85,
+    "ambient": 0.15
+  },
+  "renderer": {
+    "repository": "https://github.com/d-itu/sdf-view",
+    "commit": "51ff7f4f9e026d852520263374056a6af0740bbc",
+    "profile": "dev"
+  },
+  "image_check": {
+    "foreground_bounds": [
+      108,
+      72,
+      396,
+      441
+    ],
+    "foreground_fraction": 0.21543502807617188,
+    "touches_border": false
+  },
+  "render_seconds": 0.362,
+  "framing": "Camera fitted to foreground bounds; shader coordinates unchanged.",
+  "visual_review": "pending"
+}

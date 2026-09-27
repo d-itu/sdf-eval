@@ -1,0 +1,70 @@
+{
+  "name": "Dodecahedron",
+  "category": "Geometry",
+  "source": {
+    "repository": "https://github.com/tovacinni/sdf-explorer",
+    "commit": "c8b1b39796d18d2ad3e7442639ef51bf986eb187",
+    "path": "data-files/sdf/Geometry/Dodecahedron.glsl",
+    "url": "https://raw.githubusercontent.com/tovacinni/sdf-explorer/c8b1b39796d18d2ad3e7442639ef51bf986eb187/data-files/sdf/Geometry/Dodecahedron.glsl",
+    "git_blob_sha1": "e68e65796802b8ee23959fe7b801ca6fca424416",
+    "sha256": "f1c04b04f0fab7488c42330a0b984dfabeda16fab826ca457ad2e0ae47f89260",
+    "notices": [
+      "/*\nCopyright 2016 Thomas Hooper @tdhooper\nLicense Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.\nLink: https://www.shadertoy.com/view/MlcGRf\n*/",
+      "/******************************************************************************\n This work is a derivative of work by Thomas Hooper used under CC BY-NC-SA 3.0.\n This work is licensed also under CC BY-NC-SA 3.0 by NVIDIA CORPORATION.\n ******************************************************************************/"
+    ]
+  },
+  "shader": "sdf.glsl",
+  "modifications": [],
+  "status": "rendered",
+  "shader_sha256": "f1c04b04f0fab7488c42330a0b984dfabeda16fab826ca457ad2e0ae47f89260",
+  "render": {
+    "width": 512,
+    "height": 512,
+    "camera_position": [
+      1.634736,
+      1.082533,
+      2.109942
+    ],
+    "camera_target": [
+      0.030353,
+      0.012944,
+      -0.029236
+    ],
+    "camera_up": [
+      0,
+      1,
+      0
+    ],
+    "fov": 45,
+    "light_direction": [
+      -0.5,
+      0.8,
+      1
+    ],
+    "light_color": [
+      1,
+      1,
+      1
+    ],
+    "light_intensity": 0.85,
+    "ambient": 0.15
+  },
+  "renderer": {
+    "repository": "https://github.com/d-itu/sdf-view",
+    "commit": "51ff7f4f9e026d852520263374056a6af0740bbc",
+    "profile": "dev"
+  },
+  "image_check": {
+    "foreground_bounds": [
+      76,
+      71,
+      443,
+      449
+    ],
+    "foreground_fraction": 0.388214111328125,
+    "touches_border": false
+  },
+  "render_seconds": 0.245,
+  "framing": "Camera fitted to foreground bounds; shader coordinates unchanged.",
+  "visual_review": "pending"
+}

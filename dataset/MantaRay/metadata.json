@@ -1,0 +1,75 @@
+{
+  "name": "MantaRay",
+  "category": "Animal",
+  "source": {
+    "repository": "https://github.com/tovacinni/sdf-explorer",
+    "commit": "c8b1b39796d18d2ad3e7442639ef51bf986eb187",
+    "path": "data-files/sdf/Animal/MantaRay.glsl",
+    "url": "https://raw.githubusercontent.com/tovacinni/sdf-explorer/c8b1b39796d18d2ad3e7442639ef51bf986eb187/data-files/sdf/Animal/MantaRay.glsl",
+    "git_blob_sha1": "c684f88ae11f7522e66b297c34448321d368d11d",
+    "sha256": "864c662f0ea9dd4c644ab4ca1a23f70a3e02fadb6cad82c6644d646682b79ab4",
+    "notices": [
+      "/*\nCopyright 2015 @dakrunch\nLicense Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.\nLink: https://www.shadertoy.com/view/4ls3zM\n*/",
+      "/******************************************************************************\n This work is a derivative of work by dakrunch used under CC BY-NC-SA 3.0.\n This work is licensed also under CC BY-NC-SA 3.0 by NVIDIA CORPORATION.\n ******************************************************************************/"
+    ]
+  },
+  "shader": "sdf.glsl",
+  "modifications": [
+    "Define the G3D pi constant locally.",
+    "Freeze G3D scene time at 0 seconds.",
+    "Cap the upstream unbounded zero-radius tail at local z in [-3, 3] to obtain a finite renderable model. This intentionally truncates the infinite tail; other geometry is unchanged."
+  ],
+  "status": "rendered",
+  "shader_sha256": "d0a67cb4355e07289c59c55ae72e12176bdb43b9ba02fc4da02d2b2adde8ce8d",
+  "render": {
+    "width": 512,
+    "height": 512,
+    "camera_position": [
+      1.823843,
+      1.096693,
+      2.739661
+    ],
+    "camera_target": [
+      -0.102732,
+      -0.187691,
+      0.170894
+    ],
+    "camera_up": [
+      0,
+      1,
+      0
+    ],
+    "fov": 45,
+    "light_direction": [
+      -0.5,
+      0.8,
+      1
+    ],
+    "light_color": [
+      1,
+      1,
+      1
+    ],
+    "light_intensity": 0.85,
+    "ambient": 0.15
+  },
+  "renderer": {
+    "repository": "https://github.com/d-itu/sdf-view",
+    "commit": "51ff7f4f9e026d852520263374056a6af0740bbc",
+    "profile": "dev"
+  },
+  "render_seconds": 0.232,
+  "scene_time_seconds": 0,
+  "image_check": {
+    "foreground_bounds": [
+      70,
+      170,
+      441,
+      349
+    ],
+    "foreground_fraction": 0.03601837158203125,
+    "touches_border": false
+  },
+  "framing": "Camera fitted to foreground bounds; shader coordinates unchanged.",
+  "visual_review": "pending"
+}

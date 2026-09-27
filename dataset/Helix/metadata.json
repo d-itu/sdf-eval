@@ -1,0 +1,72 @@
+{
+  "name": "Helix",
+  "category": "Geometry",
+  "source": {
+    "repository": "https://github.com/tovacinni/sdf-explorer",
+    "commit": "c8b1b39796d18d2ad3e7442639ef51bf986eb187",
+    "path": "data-files/sdf/Geometry/Helix.glsl",
+    "url": "https://raw.githubusercontent.com/tovacinni/sdf-explorer/c8b1b39796d18d2ad3e7442639ef51bf986eb187/data-files/sdf/Geometry/Helix.glsl",
+    "git_blob_sha1": "fc5c4d65176dbeaf2bd2756f4a86c99c3d8e4e88",
+    "sha256": "dd595b2807181f050557e96003055952381f26d483966c16f58d0f76ee379788",
+    "notices": [
+      "/*\nCopyright 2016 Xor @XorDev\nLicense Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.\nLink: https://www.shadertoy.com/view/Md3XRM\n*/",
+      "/******************************************************************************\n This work is a derivative of work by XorDev used under CC BY-NC-SA 3.0.\n This work is licensed also under CC BY-NC-SA 3.0 by NVIDIA CORPORATION.\n ******************************************************************************/"
+    ]
+  },
+  "shader": "sdf.glsl",
+  "modifications": [
+    "Define the G3D pi constant locally."
+  ],
+  "status": "rendered",
+  "shader_sha256": "408e2d4839387b24a0799c60d455a4f8b88fa7f235c5c9891168213885ed8d89",
+  "render": {
+    "width": 512,
+    "height": 512,
+    "camera_position": [
+      1.912456,
+      1.31998,
+      2.561559
+    ],
+    "camera_target": [
+      -0.01412,
+      0.035596,
+      -0.007208
+    ],
+    "camera_up": [
+      0,
+      1,
+      0
+    ],
+    "fov": 45,
+    "light_direction": [
+      -0.5,
+      0.8,
+      1
+    ],
+    "light_color": [
+      1,
+      1,
+      1
+    ],
+    "light_intensity": 0.85,
+    "ambient": 0.15
+  },
+  "renderer": {
+    "repository": "https://github.com/d-itu/sdf-view",
+    "commit": "51ff7f4f9e026d852520263374056a6af0740bbc",
+    "profile": "dev"
+  },
+  "render_seconds": 0.252,
+  "image_check": {
+    "foreground_bounds": [
+      195,
+      72,
+      317,
+      436
+    ],
+    "foreground_fraction": 0.06894683837890625,
+    "touches_border": false
+  },
+  "framing": "Camera fitted to foreground bounds; shader coordinates unchanged.",
+  "visual_review": "pending"
+}

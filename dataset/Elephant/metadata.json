@@ -1,0 +1,70 @@
+{
+  "name": "Elephant",
+  "category": "Animal",
+  "source": {
+    "repository": "https://github.com/tovacinni/sdf-explorer",
+    "commit": "c8b1b39796d18d2ad3e7442639ef51bf986eb187",
+    "path": "data-files/sdf/Animal/Elephant.glsl",
+    "url": "https://raw.githubusercontent.com/tovacinni/sdf-explorer/c8b1b39796d18d2ad3e7442639ef51bf986eb187/data-files/sdf/Animal/Elephant.glsl",
+    "git_blob_sha1": "598cfc6e0635854c30635e5536b2615d5cfe32b1",
+    "sha256": "59c0ce1daa69f0e1ca0aa624fcc5b30e05e63436f9df701ecb56c3344cbda6e6",
+    "notices": [
+      "/*\nCopyright 2016 Inigo Quilez @iq\nLicense Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.\nLink: https://www.shadertoy.com/view/4dKGWm\nArchive Link: https://web.archive.org/web/20191112085742/https://www.shadertoy.com/view/4dKGWm\n*/",
+      "/******************************************************************************\n This work is a derivative of work by Inigo Quilez used under CC BY-NC-SA 3.0.\n This work is licensed also under CC BY-NC-SA 3.0 by NVIDIA CORPORATION.\n ******************************************************************************/"
+    ]
+  },
+  "shader": "sdf.glsl",
+  "modifications": [],
+  "status": "rendered",
+  "shader_sha256": "59c0ce1daa69f0e1ca0aa624fcc5b30e05e63436f9df701ecb56c3344cbda6e6",
+  "render": {
+    "width": 512,
+    "height": 512,
+    "camera_position": [
+      0.927978,
+      0.730042,
+      1.389495
+    ],
+    "camera_target": [
+      -0.086022,
+      0.054042,
+      0.037495
+    ],
+    "camera_up": [
+      0,
+      1,
+      0
+    ],
+    "fov": 45,
+    "light_direction": [
+      -0.5,
+      0.8,
+      1
+    ],
+    "light_color": [
+      1,
+      1,
+      1
+    ],
+    "light_intensity": 0.85,
+    "ambient": 0.15
+  },
+  "renderer": {
+    "repository": "https://github.com/d-itu/sdf-view",
+    "commit": "51ff7f4f9e026d852520263374056a6af0740bbc",
+    "profile": "dev"
+  },
+  "image_check": {
+    "foreground_bounds": [
+      73,
+      89,
+      421,
+      427
+    ],
+    "foreground_fraction": 0.273040771484375,
+    "touches_border": false
+  },
+  "render_seconds": 0.525,
+  "framing": "Camera fitted to foreground bounds; shader coordinates unchanged.",
+  "visual_review": "pending"
+}

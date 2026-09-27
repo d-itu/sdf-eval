@@ -1,0 +1,73 @@
+{
+  "name": "Lamborghini",
+  "category": "Vehicle",
+  "source": {
+    "repository": "https://github.com/tovacinni/sdf-explorer",
+    "commit": "c8b1b39796d18d2ad3e7442639ef51bf986eb187",
+    "path": "data-files/sdf/Vehicle/Lamborghini.glsl",
+    "url": "https://raw.githubusercontent.com/tovacinni/sdf-explorer/c8b1b39796d18d2ad3e7442639ef51bf986eb187/data-files/sdf/Vehicle/Lamborghini.glsl",
+    "git_blob_sha1": "c3bf5d7b7368752d813459a92cd63e1f030ea864",
+    "sha256": "ebaae09b3e809bc1151a6c316020e4b8f69104e7ca1f9a8029df5c708962ccd2",
+    "notices": [
+      "/*\nCopyright 2019 Florian Berger @flockaroo\nLicense Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.\nLink: https://www.shadertoy.com/view/wdfcz2\n*/",
+      "/******************************************************************************\n This work is a derivative of work by Florian Berger used under CC BY-NC-SA 3.0.\n This work is licensed also under CC BY-NC-SA 3.0 by NVIDIA CORPORATION.\n ******************************************************************************/"
+    ]
+  },
+  "shader": "sdf.glsl",
+  "modifications": [
+    "Define the G3D pi constant locally.",
+    "Specify fixed length 5 for wheel parameter arrays and their constructors for Naga."
+  ],
+  "status": "rendered",
+  "shader_sha256": "32733d198096f06237d4031a36eeafbd9dd73e96999a89b7312415edfd1f4d8d",
+  "render": {
+    "width": 512,
+    "height": 512,
+    "camera_position": [
+      1.539922,
+      0.949391,
+      2.140363
+    ],
+    "camera_target": [
+      -0.020078,
+      -0.090609,
+      0.060363
+    ],
+    "camera_up": [
+      0,
+      1,
+      0
+    ],
+    "fov": 45,
+    "light_direction": [
+      -0.5,
+      0.8,
+      1
+    ],
+    "light_color": [
+      1,
+      1,
+      1
+    ],
+    "light_intensity": 0.85,
+    "ambient": 0.15
+  },
+  "renderer": {
+    "repository": "https://github.com/d-itu/sdf-view",
+    "commit": "51ff7f4f9e026d852520263374056a6af0740bbc",
+    "profile": "dev"
+  },
+  "render_seconds": 0.338,
+  "image_check": {
+    "foreground_bounds": [
+      80,
+      173,
+      414,
+      353
+    ],
+    "foreground_fraction": 0.13754653930664062,
+    "touches_border": false
+  },
+  "framing": "Camera fitted to foreground bounds; shader coordinates unchanged.",
+  "visual_review": "pending"
+}

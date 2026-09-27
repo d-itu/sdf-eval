@@ -1,0 +1,73 @@
+{
+  "name": "Cables",
+  "category": "Manufactured",
+  "source": {
+    "repository": "https://github.com/tovacinni/sdf-explorer",
+    "commit": "c8b1b39796d18d2ad3e7442639ef51bf986eb187",
+    "path": "data-files/sdf/Manufactured/Cables.glsl",
+    "url": "https://raw.githubusercontent.com/tovacinni/sdf-explorer/c8b1b39796d18d2ad3e7442639ef51bf986eb187/data-files/sdf/Manufactured/Cables.glsl",
+    "git_blob_sha1": "5cef2eb5c53dfb6d70f607e399dbe2ee38642ac0",
+    "sha256": "28cbe8ccbb1f8e8af7a13023c281f1192cc868cd6b5a2ae99dab5864a30a8b95",
+    "notices": [
+      "/*\nCopyright 2020 @yuntaRobo\nLicense Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.\nLink: https://www.shadertoy.com/view/wlKXWc\n*/",
+      "/******************************************************************************\n This work is a derivative of work by yuntaRobo used under CC BY-NC-SA 3.0.\n This work is licensed also under CC BY-NC-SA 3.0 by NVIDIA CORPORATION.\n ******************************************************************************/"
+    ]
+  },
+  "shader": "sdf.glsl",
+  "modifications": [
+    "Freeze G3D scene time at 0 seconds."
+  ],
+  "status": "rendered",
+  "shader_sha256": "28e74615d28d253aa05594b3d80aa5cbfc5bf529ad4df44a1c34073b0e28a393",
+  "render": {
+    "width": 512,
+    "height": 512,
+    "camera_position": [
+      1.625345,
+      1.089212,
+      2.161317
+    ],
+    "camera_target": [
+      0.001235,
+      0.006472,
+      -0.004162
+    ],
+    "camera_up": [
+      0,
+      1,
+      0
+    ],
+    "fov": 45,
+    "light_direction": [
+      -0.5,
+      0.8,
+      1
+    ],
+    "light_color": [
+      1,
+      1,
+      1
+    ],
+    "light_intensity": 0.85,
+    "ambient": 0.15
+  },
+  "renderer": {
+    "repository": "https://github.com/d-itu/sdf-view",
+    "commit": "51ff7f4f9e026d852520263374056a6af0740bbc",
+    "profile": "dev"
+  },
+  "render_seconds": 0.315,
+  "scene_time_seconds": 0,
+  "image_check": {
+    "foreground_bounds": [
+      74,
+      98,
+      450,
+      431
+    ],
+    "foreground_fraction": 0.2217864990234375,
+    "touches_border": false
+  },
+  "framing": "Camera fitted to foreground bounds; shader coordinates unchanged.",
+  "visual_review": "pending"
+}

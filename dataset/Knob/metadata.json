@@ -1,0 +1,72 @@
+{
+  "name": "Knob",
+  "category": "Manufactured",
+  "source": {
+    "repository": "https://github.com/tovacinni/sdf-explorer",
+    "commit": "c8b1b39796d18d2ad3e7442639ef51bf986eb187",
+    "path": "data-files/sdf/Manufactured/Knob.glsl",
+    "url": "https://raw.githubusercontent.com/tovacinni/sdf-explorer/c8b1b39796d18d2ad3e7442639ef51bf986eb187/data-files/sdf/Manufactured/Knob.glsl",
+    "git_blob_sha1": "24613e1f77c642cee1db81e639724965636f293b",
+    "sha256": "1d3fcb93d50b1baedd070442f6bb88e2ff2c1be6291a5436aa9e6c2fd3ccf1ef",
+    "notices": [
+      "/*\nCopyright 2020 Towaki Takikawa @yongyuanxi\nThe MIT License\nLink: N/A\n*/",
+      "/******************************************************************************\n * The MIT License (MIT)\n * Copyright (c) 2021, NVIDIA CORPORATION.\n * Permission is hereby granted, free of charge, to any person obtaining a copy of\n * this software and associated documentation files (the \"Software\"), to deal in\n * the Software without restriction, including without limitation the rights to\n * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of\n * the Software, and to permit persons to whom the Software is furnished to do so,\n * subject to the following conditions:\n * The above copyright notice and this permission notice shall be included in all\n * copies or substantial portions of the Software.\n * THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS\n * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR\n * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER\n * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN\n * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n ******************************************************************************/"
+    ]
+  },
+  "shader": "sdf.glsl",
+  "modifications": [
+    "Define the G3D pi constant locally."
+  ],
+  "status": "rendered",
+  "shader_sha256": "89e86a97f5d09f975fb0653ba3b01d5615eaf044164f9abc2d41f11c6f72470a",
+  "render": {
+    "width": 512,
+    "height": 512,
+    "camera_position": [
+      1.97975,
+      1.094605,
+      2.639666
+    ],
+    "camera_target": [
+      0.046599,
+      -0.194163,
+      0.062132
+    ],
+    "camera_up": [
+      0,
+      1,
+      0
+    ],
+    "fov": 45,
+    "light_direction": [
+      -0.5,
+      0.8,
+      1
+    ],
+    "light_color": [
+      1,
+      1,
+      1
+    ],
+    "light_intensity": 0.85,
+    "ambient": 0.15
+  },
+  "renderer": {
+    "repository": "https://github.com/d-itu/sdf-view",
+    "commit": "51ff7f4f9e026d852520263374056a6af0740bbc",
+    "profile": "dev"
+  },
+  "render_seconds": 0.334,
+  "image_check": {
+    "foreground_bounds": [
+      102,
+      70,
+      410,
+      440
+    ],
+    "foreground_fraction": 0.3233680725097656,
+    "touches_border": false
+  },
+  "framing": "Camera fitted to foreground bounds; shader coordinates unchanged.",
+  "visual_review": "pending"
+}

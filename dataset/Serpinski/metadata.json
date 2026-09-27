@@ -1,0 +1,70 @@
+{
+  "name": "Serpinski",
+  "category": "Fractal",
+  "source": {
+    "repository": "https://github.com/tovacinni/sdf-explorer",
+    "commit": "c8b1b39796d18d2ad3e7442639ef51bf986eb187",
+    "path": "data-files/sdf/Fractal/Serpinski.glsl",
+    "url": "https://raw.githubusercontent.com/tovacinni/sdf-explorer/c8b1b39796d18d2ad3e7442639ef51bf986eb187/data-files/sdf/Fractal/Serpinski.glsl",
+    "git_blob_sha1": "993e445ed6bcec4c8cdb0f6cd0bd04316881d6e1",
+    "sha256": "3b76b661e959def91dd67125d05eeb9bd589358094ccbf0576ac768e33e84866",
+    "notices": [
+      "/*\nCopyright al13n 2014 @al13n\nLicense Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.\nLink: https://www.shadertoy.com/view/Xd2XDW\n*/",
+      "/******************************************************************************\n This work is a derivative of work by al13n used under CC BY-NC-SA 3.0.\n This work is licensed also under CC BY-NC-SA 3.0 by NVIDIA CORPORATION.\n ******************************************************************************/"
+    ]
+  },
+  "shader": "sdf.glsl",
+  "modifications": [],
+  "status": "rendered",
+  "shader_sha256": "3b76b661e959def91dd67125d05eeb9bd589358094ccbf0576ac768e33e84866",
+  "render": {
+    "width": 512,
+    "height": 512,
+    "camera_position": [
+      2.295931,
+      1.246973,
+      3.136757
+    ],
+    "camera_target": [
+      0.027438,
+      -0.265356,
+      0.112099
+    ],
+    "camera_up": [
+      0,
+      1,
+      0
+    ],
+    "fov": 45,
+    "light_direction": [
+      -0.5,
+      0.8,
+      1
+    ],
+    "light_color": [
+      1,
+      1,
+      1
+    ],
+    "light_intensity": 0.85,
+    "ambient": 0.15
+  },
+  "renderer": {
+    "repository": "https://github.com/d-itu/sdf-view",
+    "commit": "51ff7f4f9e026d852520263374056a6af0740bbc",
+    "profile": "dev"
+  },
+  "image_check": {
+    "foreground_bounds": [
+      73,
+      84,
+      440,
+      418
+    ],
+    "foreground_fraction": 0.126007080078125,
+    "touches_border": false
+  },
+  "render_seconds": 0.271,
+  "framing": "Camera fitted to foreground bounds; shader coordinates unchanged.",
+  "visual_review": "pending"
+}

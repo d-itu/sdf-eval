@@ -1,0 +1,70 @@
+{
+  "name": "PixarMike",
+  "category": "Animal",
+  "source": {
+    "repository": "https://github.com/tovacinni/sdf-explorer",
+    "commit": "c8b1b39796d18d2ad3e7442639ef51bf986eb187",
+    "path": "data-files/sdf/Animal/PixarMike.glsl",
+    "url": "https://raw.githubusercontent.com/tovacinni/sdf-explorer/c8b1b39796d18d2ad3e7442639ef51bf986eb187/data-files/sdf/Animal/PixarMike.glsl",
+    "git_blob_sha1": "7c3c7668d7b08aa79c80ff620f8ac70c494084fb",
+    "sha256": "2525db58aff9999bff2553971920fd8f92c0c5aeac34efcc14a4bf97518df396",
+    "notices": [
+      "/*\nCopyright 2013 Inigo Quilez @iq\nLicense Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.\nLink: https://www.shadertoy.com/view/MsXGWr\nArchive Link: https://web.archive.org/web/20191113080801/https://www.shadertoy.com/view/MsXGWr\n*/",
+      "/******************************************************************************\n This work is a derivative of work by Inigo Quilez used under CC BY-NC-SA 3.0.\n This work is licensed also under CC BY-NC-SA 3.0 by NVIDIA CORPORATION.\n ******************************************************************************/"
+    ]
+  },
+  "shader": "sdf.glsl",
+  "modifications": [],
+  "status": "rendered",
+  "shader_sha256": "2525db58aff9999bff2553971920fd8f92c0c5aeac34efcc14a4bf97518df396",
+  "render": {
+    "width": 512,
+    "height": 512,
+    "camera_position": [
+      1.274721,
+      0.893655,
+      1.664775
+    ],
+    "camera_target": [
+      0.005351,
+      0.047408,
+      -0.027718
+    ],
+    "camera_up": [
+      0,
+      1,
+      0
+    ],
+    "fov": 45,
+    "light_direction": [
+      -0.5,
+      0.8,
+      1
+    ],
+    "light_color": [
+      1,
+      1,
+      1
+    ],
+    "light_intensity": 0.85,
+    "ambient": 0.15
+  },
+  "renderer": {
+    "repository": "https://github.com/d-itu/sdf-view",
+    "commit": "51ff7f4f9e026d852520263374056a6af0740bbc",
+    "profile": "dev"
+  },
+  "image_check": {
+    "foreground_bounds": [
+      150,
+      71,
+      364,
+      440
+    ],
+    "foreground_fraction": 0.1774444580078125,
+    "touches_border": false
+  },
+  "render_seconds": 0.363,
+  "framing": "Camera fitted to foreground bounds; shader coordinates unchanged.",
+  "visual_review": "pending"
+}

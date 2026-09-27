@@ -1,0 +1,74 @@
+{
+  "name": "Jellyfish",
+  "category": "Animal",
+  "source": {
+    "repository": "https://github.com/tovacinni/sdf-explorer",
+    "commit": "c8b1b39796d18d2ad3e7442639ef51bf986eb187",
+    "path": "data-files/sdf/Animal/Jellyfish.glsl",
+    "url": "https://raw.githubusercontent.com/tovacinni/sdf-explorer/c8b1b39796d18d2ad3e7442639ef51bf986eb187/data-files/sdf/Animal/Jellyfish.glsl",
+    "git_blob_sha1": "121f0f5b4c0926b3a4a6b4e25a56637234bc0c52",
+    "sha256": "0a5fe32c637399e87686decbe45db7c43a69c16ad47d7f5514bee4ab161c4582",
+    "notices": [
+      "/*\nCopyright 2017 Martijn Steinrucken @BigWings\nLicense Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.\nLink: https://www.shadertoy.com/view/4sXBRn\n*/",
+      "/******************************************************************************\n This work is a derivative of work by Martijn Steinrucken used under CC BY-NC-SA 3.0.\n This work is licensed also under CC BY-NC-SA 3.0 by NVIDIA CORPORATION.\n ******************************************************************************/"
+    ]
+  },
+  "shader": "sdf.glsl",
+  "modifications": [
+    "Define the G3D pi constant locally.",
+    "Freeze G3D scene time at 0 seconds."
+  ],
+  "status": "rendered",
+  "shader_sha256": "6f8d485f546ba5d9a231273de6f73f19f74b2c68e1dac8ab719efa5d797e28d8",
+  "render": {
+    "width": 512,
+    "height": 512,
+    "camera_position": [
+      1.67118,
+      1.161024,
+      2.234048
+    ],
+    "camera_target": [
+      -0.012108,
+      0.038833,
+      -0.010335
+    ],
+    "camera_up": [
+      0,
+      1,
+      0
+    ],
+    "fov": 45,
+    "light_direction": [
+      -0.5,
+      0.8,
+      1
+    ],
+    "light_color": [
+      1,
+      1,
+      1
+    ],
+    "light_intensity": 0.85,
+    "ambient": 0.15
+  },
+  "renderer": {
+    "repository": "https://github.com/d-itu/sdf-view",
+    "commit": "51ff7f4f9e026d852520263374056a6af0740bbc",
+    "profile": "dev"
+  },
+  "render_seconds": 0.284,
+  "scene_time_seconds": 0,
+  "image_check": {
+    "foreground_bounds": [
+      202,
+      67,
+      312,
+      432
+    ],
+    "foreground_fraction": 0.057743072509765625,
+    "touches_border": false
+  },
+  "framing": "Camera fitted to foreground bounds; shader coordinates unchanged.",
+  "visual_review": "pending"
+}

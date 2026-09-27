@@ -1,0 +1,74 @@
+{
+  "name": "Tree",
+  "category": "Nature",
+  "source": {
+    "repository": "https://github.com/tovacinni/sdf-explorer",
+    "commit": "c8b1b39796d18d2ad3e7442639ef51bf986eb187",
+    "path": "data-files/sdf/Nature/Tree.glsl",
+    "url": "https://raw.githubusercontent.com/tovacinni/sdf-explorer/c8b1b39796d18d2ad3e7442639ef51bf986eb187/data-files/sdf/Nature/Tree.glsl",
+    "git_blob_sha1": "fb1f8763f46f5888731c90db37a032a88b8020b6",
+    "sha256": "3cc9b3a0f13d8fc9e6c81c4833830a1f1abbc069ff37c572241cf0befdc37a23",
+    "notices": [
+      "/*\nCopyright 2020 @Maurogik\nLicense Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.\nLink: https://www.shadertoy.com/view/tdjyzz\n*/",
+      "/******************************************************************************\n This work is a derivative of work by Maurogik used under CC BY-NC-SA 3.0.\n This work is licensed also under CC BY-NC-SA 3.0 by NVIDIA CORPORATION.\n ******************************************************************************/"
+    ]
+  },
+  "shader": "sdf.glsl",
+  "modifications": [
+    "Freeze G3D scene time at 0 seconds.",
+    "Remove unused textured terrain noise and sampler arguments; preserve the upstream tree-only distance result."
+  ],
+  "status": "rendered",
+  "shader_sha256": "bca6caf0a677deff6547fe3c6495443ec50f092d024c44c6d85f94038b38b16f",
+  "render": {
+    "width": 512,
+    "height": 512,
+    "camera_position": [
+      1.676589,
+      1.227397,
+      2.578175
+    ],
+    "camera_target": [
+      -0.164507,
+      0.0,
+      0.123381
+    ],
+    "camera_up": [
+      0,
+      1,
+      0
+    ],
+    "fov": 45,
+    "light_direction": [
+      -0.5,
+      0.8,
+      1
+    ],
+    "light_color": [
+      1,
+      1,
+      1
+    ],
+    "light_intensity": 0.85,
+    "ambient": 0.15
+  },
+  "renderer": {
+    "repository": "https://github.com/d-itu/sdf-view",
+    "commit": "51ff7f4f9e026d852520263374056a6af0740bbc",
+    "profile": "dev"
+  },
+  "render_seconds": 0.54,
+  "scene_time_seconds": 0,
+  "image_check": {
+    "foreground_bounds": [
+      87,
+      67,
+      433,
+      433
+    ],
+    "foreground_fraction": 0.2064056396484375,
+    "touches_border": false
+  },
+  "framing": "Camera fitted to foreground bounds; shader coordinates unchanged.",
+  "visual_review": "pending"
+}

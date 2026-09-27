@@ -1,0 +1,73 @@
+{
+  "name": "Gear",
+  "category": "Manufactured",
+  "source": {
+    "repository": "https://github.com/tovacinni/sdf-explorer",
+    "commit": "c8b1b39796d18d2ad3e7442639ef51bf986eb187",
+    "path": "data-files/sdf/Manufactured/Gear.glsl",
+    "url": "https://raw.githubusercontent.com/tovacinni/sdf-explorer/c8b1b39796d18d2ad3e7442639ef51bf986eb187/data-files/sdf/Manufactured/Gear.glsl",
+    "git_blob_sha1": "7043083c1d6fc86c5dd2fbb851df1db32b16eabb",
+    "sha256": "47a6c558254f474cb465b6f1dfef3b4feea79586562167bd2f3ab5eae6696996",
+    "notices": [
+      "/*\nCopyright 2013 @P_Malin\nLicense Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.\nLink: https://www.shadertoy.com/view/Msl3Rn\n*/",
+      "/******************************************************************************\n This work is a derivative of work by P_Malin used under CC BY-NC-SA 3.0.\n This work is licensed also under CC BY-NC-SA 3.0 by NVIDIA CORPORATION.\n ******************************************************************************/"
+    ]
+  },
+  "shader": "sdf.glsl",
+  "modifications": [
+    "Define the G3D pi constant locally.",
+    "Remove redundant const on input parameters for the Naga GLSL parser."
+  ],
+  "status": "rendered",
+  "shader_sha256": "a6ec8d413abe87ddc4d497059a53fdabc5d9bdcedcd6b1938870804a5a1d4650",
+  "render": {
+    "width": 512,
+    "height": 512,
+    "camera_position": [
+      1.650635,
+      1.08974,
+      2.014962
+    ],
+    "camera_target": [
+      0.079128,
+      0.042069,
+      -0.08038
+    ],
+    "camera_up": [
+      0,
+      1,
+      0
+    ],
+    "fov": 45,
+    "light_direction": [
+      -0.5,
+      0.8,
+      1
+    ],
+    "light_color": [
+      1,
+      1,
+      1
+    ],
+    "light_intensity": 0.85,
+    "ambient": 0.15
+  },
+  "renderer": {
+    "repository": "https://github.com/d-itu/sdf-view",
+    "commit": "51ff7f4f9e026d852520263374056a6af0740bbc",
+    "profile": "dev"
+  },
+  "render_seconds": 0.259,
+  "image_check": {
+    "foreground_bounds": [
+      102,
+      71,
+      425,
+      437
+    ],
+    "foreground_fraction": 0.31166839599609375,
+    "touches_border": false
+  },
+  "framing": "Camera fitted to foreground bounds; shader coordinates unchanged.",
+  "visual_review": "pending"
+}

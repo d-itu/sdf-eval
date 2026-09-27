@@ -1,0 +1,73 @@
+{
+  "name": "Mech",
+  "category": "Manufactured",
+  "source": {
+    "repository": "https://github.com/tovacinni/sdf-explorer",
+    "commit": "c8b1b39796d18d2ad3e7442639ef51bf986eb187",
+    "path": "data-files/sdf/Manufactured/Mech.glsl",
+    "url": "https://raw.githubusercontent.com/tovacinni/sdf-explorer/c8b1b39796d18d2ad3e7442639ef51bf986eb187/data-files/sdf/Manufactured/Mech.glsl",
+    "git_blob_sha1": "405598fb4f9c5fb20e64a19a820d170e49fa87b0",
+    "sha256": "c056bd06d3b834ca35cb0f9b28c2d189c442bbe900cd1ca829a5a93e44f6a847",
+    "notices": [
+      "/*\nCopyright 2020 @dean_the_coder\nLicense Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.\nLink: https://www.shadertoy.com/view/wsGczG\n*/",
+      "/******************************************************************************\n This work is a derivative of work by dean_the_coder used under CC BY-NC-SA 3.0.\n This work is licensed also under CC BY-NC-SA 3.0 by NVIDIA CORPORATION.\n ******************************************************************************/"
+    ]
+  },
+  "shader": "sdf.glsl",
+  "modifications": [
+    "Freeze G3D scene time at 0 seconds."
+  ],
+  "status": "rendered",
+  "shader_sha256": "7fa75afc3ae45b81b8b2115bd516b94863f813032097edab620eee2b8493c38f",
+  "render": {
+    "width": 512,
+    "height": 512,
+    "camera_position": [
+      1.785888,
+      1.008081,
+      2.526406
+    ],
+    "camera_target": [
+      -0.022331,
+      -0.197399,
+      0.115447
+    ],
+    "camera_up": [
+      0,
+      1,
+      0
+    ],
+    "fov": 45,
+    "light_direction": [
+      -0.5,
+      0.8,
+      1
+    ],
+    "light_color": [
+      1,
+      1,
+      1
+    ],
+    "light_intensity": 0.85,
+    "ambient": 0.15
+  },
+  "renderer": {
+    "repository": "https://github.com/d-itu/sdf-view",
+    "commit": "51ff7f4f9e026d852520263374056a6af0740bbc",
+    "profile": "dev"
+  },
+  "render_seconds": 0.409,
+  "scene_time_seconds": 0,
+  "image_check": {
+    "foreground_bounds": [
+      114,
+      74,
+      403,
+      439
+    ],
+    "foreground_fraction": 0.21070098876953125,
+    "touches_border": false
+  },
+  "framing": "Camera fitted to foreground bounds; shader coordinates unchanged.",
+  "visual_review": "pending"
+}

@@ -1,0 +1,70 @@
+{
+  "name": "Vase",
+  "category": "Manufactured",
+  "source": {
+    "repository": "https://github.com/tovacinni/sdf-explorer",
+    "commit": "c8b1b39796d18d2ad3e7442639ef51bf986eb187",
+    "path": "data-files/sdf/Manufactured/Vase.glsl",
+    "url": "https://raw.githubusercontent.com/tovacinni/sdf-explorer/c8b1b39796d18d2ad3e7442639ef51bf986eb187/data-files/sdf/Manufactured/Vase.glsl",
+    "git_blob_sha1": "de7e63a80998defce5539c2d07c8988cb50a4fa6",
+    "sha256": "73bf1d6dfa509788fb79f5a99ac03683d397efa93cb5cbcfb3cb07939d261c9d",
+    "notices": [
+      "/*\nCopyright 2018 Wes Bakane @WB\nLicense Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.\nLink: https://www.shadertoy.com/view/4tKfWW\n*/",
+      "/******************************************************************************\n This work is a derivative of work by Wes Bakane used under CC BY-NC-SA 3.0.\n This work is licensed also under CC BY-NC-SA 3.0 by NVIDIA CORPORATION.\n ******************************************************************************/"
+    ]
+  },
+  "shader": "sdf.glsl",
+  "modifications": [],
+  "status": "rendered",
+  "shader_sha256": "73bf1d6dfa509788fb79f5a99ac03683d397efa93cb5cbcfb3cb07939d261c9d",
+  "render": {
+    "width": 512,
+    "height": 512,
+    "camera_position": [
+      1.556117,
+      1.05618,
+      2.074822
+    ],
+    "camera_target": [
+      -0.003883,
+      0.01618,
+      -0.005178
+    ],
+    "camera_up": [
+      0,
+      1,
+      0
+    ],
+    "fov": 45,
+    "light_direction": [
+      -0.5,
+      0.8,
+      1
+    ],
+    "light_color": [
+      1,
+      1,
+      1
+    ],
+    "light_intensity": 0.85,
+    "ambient": 0.15
+  },
+  "renderer": {
+    "repository": "https://github.com/d-itu/sdf-view",
+    "commit": "51ff7f4f9e026d852520263374056a6af0740bbc",
+    "profile": "dev"
+  },
+  "image_check": {
+    "foreground_bounds": [
+      156,
+      81,
+      356,
+      431
+    ],
+    "foreground_fraction": 0.18804931640625,
+    "touches_border": false
+  },
+  "render_seconds": 0.289,
+  "framing": "Camera fitted to foreground bounds; shader coordinates unchanged.",
+  "visual_review": "pending"
+}

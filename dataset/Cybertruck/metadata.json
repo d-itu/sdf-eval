@@ -1,0 +1,70 @@
+{
+  "name": "Cybertruck",
+  "category": "Vehicle",
+  "source": {
+    "repository": "https://github.com/tovacinni/sdf-explorer",
+    "commit": "c8b1b39796d18d2ad3e7442639ef51bf986eb187",
+    "path": "data-files/sdf/Vehicle/Cybertruck.glsl",
+    "url": "https://raw.githubusercontent.com/tovacinni/sdf-explorer/c8b1b39796d18d2ad3e7442639ef51bf986eb187/data-files/sdf/Vehicle/Cybertruck.glsl",
+    "git_blob_sha1": "890cfb28ee08d4e928575e3f5d0b157fb2d878f5",
+    "sha256": "f38ebac2a867c840c1a7f36cc6eab69213d0a9bb4c3840cfc0769964282f18b1",
+    "notices": [
+      "/*\nCopyright 2019 Martijn Steinrucken @BigWings\nLicense Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.\nLink: https://www.shadertoy.com/view/wdGXzK\n*/",
+      "/******************************************************************************\n This work is a derivative of work by Martijn Steinrucken used under CC BY-NC-SA 3.0.\n This work is licensed also under CC BY-NC-SA 3.0 by NVIDIA CORPORATION.\n ******************************************************************************/"
+    ]
+  },
+  "shader": "sdf.glsl",
+  "modifications": [],
+  "status": "rendered",
+  "shader_sha256": "f38ebac2a867c840c1a7f36cc6eab69213d0a9bb4c3840cfc0769964282f18b1",
+  "render": {
+    "width": 512,
+    "height": 512,
+    "camera_position": [
+      1.238092,
+      0.784769,
+      1.798334
+    ],
+    "camera_target": [
+      -0.052648,
+      -0.075724,
+      0.077348
+    ],
+    "camera_up": [
+      0,
+      1,
+      0
+    ],
+    "fov": 45,
+    "light_direction": [
+      -0.5,
+      0.8,
+      1
+    ],
+    "light_color": [
+      1,
+      1,
+      1
+    ],
+    "light_intensity": 0.85,
+    "ambient": 0.15
+  },
+  "renderer": {
+    "repository": "https://github.com/d-itu/sdf-view",
+    "commit": "51ff7f4f9e026d852520263374056a6af0740bbc",
+    "profile": "dev"
+  },
+  "image_check": {
+    "foreground_bounds": [
+      69,
+      144,
+      433,
+      378
+    ],
+    "foreground_fraction": 0.19478988647460938,
+    "touches_border": false
+  },
+  "render_seconds": 0.308,
+  "framing": "Camera fitted to foreground bounds; shader coordinates unchanged.",
+  "visual_review": "pending"
+}

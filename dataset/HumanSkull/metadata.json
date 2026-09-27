@@ -1,0 +1,70 @@
+{
+  "name": "HumanSkull",
+  "category": "Animal",
+  "source": {
+    "repository": "https://github.com/tovacinni/sdf-explorer",
+    "commit": "c8b1b39796d18d2ad3e7442639ef51bf986eb187",
+    "path": "data-files/sdf/Animal/HumanSkull.glsl",
+    "url": "https://raw.githubusercontent.com/tovacinni/sdf-explorer/c8b1b39796d18d2ad3e7442639ef51bf986eb187/data-files/sdf/Animal/HumanSkull.glsl",
+    "git_blob_sha1": "b15558da894b9a97f32e0cc444ec0bfca519a521",
+    "sha256": "bc324a2cda7009bd4fca392e179912f9630d46cbca17804f3a7f0b45a53a0ba6",
+    "notices": [
+      "/*\nCopyright 2020 @monsterkodi\nLicense Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.\nLink: https://www.shadertoy.com/view/3tGSDz\n*/",
+      "/******************************************************************************\n This work is a derivative of work by monsterkodi used under CC BY-NC-SA 3.0.\n This work is licensed also under CC BY-NC-SA 3.0 by NVIDIA CORPORATION.\n ******************************************************************************/"
+    ]
+  },
+  "shader": "sdf.glsl",
+  "modifications": [],
+  "status": "rendered",
+  "shader_sha256": "bc324a2cda7009bd4fca392e179912f9630d46cbca17804f3a7f0b45a53a0ba6",
+  "render": {
+    "width": 512,
+    "height": 512,
+    "camera_position": [
+      1.556317,
+      1.04673,
+      2.138986
+    ],
+    "camera_target": [
+      -0.028341,
+      -0.009708,
+      0.02611
+    ],
+    "camera_up": [
+      0,
+      1,
+      0
+    ],
+    "fov": 45,
+    "light_direction": [
+      -0.5,
+      0.8,
+      1
+    ],
+    "light_color": [
+      1,
+      1,
+      1
+    ],
+    "light_intensity": 0.85,
+    "ambient": 0.15
+  },
+  "renderer": {
+    "repository": "https://github.com/d-itu/sdf-view",
+    "commit": "51ff7f4f9e026d852520263374056a6af0740bbc",
+    "profile": "dev"
+  },
+  "image_check": {
+    "foreground_bounds": [
+      72,
+      126,
+      446,
+      401
+    ],
+    "foreground_fraction": 0.18194580078125,
+    "touches_border": false
+  },
+  "render_seconds": 0.355,
+  "framing": "Camera fitted to foreground bounds; shader coordinates unchanged.",
+  "visual_review": "pending"
+}

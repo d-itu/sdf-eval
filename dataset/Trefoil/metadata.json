@@ -1,0 +1,72 @@
+{
+  "name": "Trefoil",
+  "category": "Geometry",
+  "source": {
+    "repository": "https://github.com/tovacinni/sdf-explorer",
+    "commit": "c8b1b39796d18d2ad3e7442639ef51bf986eb187",
+    "path": "data-files/sdf/Geometry/Trefoil.glsl",
+    "url": "https://raw.githubusercontent.com/tovacinni/sdf-explorer/c8b1b39796d18d2ad3e7442639ef51bf986eb187/data-files/sdf/Geometry/Trefoil.glsl",
+    "git_blob_sha1": "96d4ece41565be8987db761e83cca14b19da5358",
+    "sha256": "0b4fc72d67bc05ab5e99ba11da4bef58aefe0e9684a6f7e86ad07ef1089d9d34",
+    "notices": [
+      "/*\nCopyright 2018 @dr2\nLicense Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License\nLink: https://www.shadertoy.com/view/ldtczX\n*/",
+      "/******************************************************************************\n This work is a derivative of work by dr2 used under CC BY-NC-SA 3.0.\n This work is licensed also under CC BY-NC-SA 3.0 by NVIDIA CORPORATION.\n ******************************************************************************/"
+    ]
+  },
+  "shader": "sdf.glsl",
+  "modifications": [
+    "Define the G3D pi constant locally."
+  ],
+  "status": "rendered",
+  "shader_sha256": "c8dc38976c902218398f1343977ee17787a7efbc6120367648cefbb54eb1c266",
+  "render": {
+    "width": 512,
+    "height": 512,
+    "camera_position": [
+      1.600869,
+      1.078833,
+      2.029932
+    ],
+    "camera_target": [
+      0.040869,
+      0.038833,
+      -0.050068
+    ],
+    "camera_up": [
+      0,
+      1,
+      0
+    ],
+    "fov": 45,
+    "light_direction": [
+      -0.5,
+      0.8,
+      1
+    ],
+    "light_color": [
+      1,
+      1,
+      1
+    ],
+    "light_intensity": 0.85,
+    "ambient": 0.15
+  },
+  "renderer": {
+    "repository": "https://github.com/d-itu/sdf-view",
+    "commit": "51ff7f4f9e026d852520263374056a6af0740bbc",
+    "profile": "dev"
+  },
+  "render_seconds": 0.29,
+  "image_check": {
+    "foreground_bounds": [
+      98,
+      71,
+      426,
+      436
+    ],
+    "foreground_fraction": 0.14965438842773438,
+    "touches_border": false
+  },
+  "framing": "Camera fitted to foreground bounds; shader coordinates unchanged.",
+  "visual_review": "pending"
+}
