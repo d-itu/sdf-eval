@@ -32,6 +32,26 @@ stored in each model's metadata. `python3 scripts/fit_cameras.py` can refit
 cameras from foreground bounds. Open `preview.html` to inspect all outputs.
 Regenerate the gallery after rendering with `scripts/validate_dataset.py`.
 
+## Multi-view rendering
+
+Render an arbitrary SDF into a new directory outside `dataset/`:
+
+```sh
+python3 scripts/render_views.py dataset/Sphere/sdf.glsl \
+  --output results/Sphere/views --distance 2 \
+  --azimuths 8 --elevations=-30,0,30 --top --bottom
+```
+
+`--distance` is required in shader coordinates; `--target` defaults to `0,0,0`.
+The default orbit has 8 azimuths and elevations of -30, 0, and 30 degrees.
+Y is up, and azimuth zero looks from +Z. The top and bottom views use -Z and
++Z as camera up respectively. Images are named by angle (for example,
+`az045_el+30.png`) or `top.png` / `bottom.png`. `views.json` contains the image
+names, camera parameters, and shared render settings. For software rendering,
+pass `--renderer sdf-view-software`; `--width`, `--height`, `--fov`, and
+`--timeout` are also configurable. The output directory must not exist; if any
+view fails, the script prints the error and leaves no output directory.
+
 The build uses the default Cargo dev profile and writes build outputs to
 `target/` inside this repository. The shell preserves the user's `CARGO_HOME`
 and `XDG_CACHE_HOME` settings. Nix manages its own store. `.envrc` supports
