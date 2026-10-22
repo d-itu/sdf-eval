@@ -8,16 +8,23 @@ are recorded in the metadata. Shader copyright and license notices are retained.
 
 Run commands from the repository root. `flake.lock` pins Nixpkgs and the
 `sdf-view` source. The renderer's upstream `Cargo.lock` pins Rust dependencies.
-The shell provides Rust, Cargo, Python with Pillow, and the Vulkan loader.
-It uses the host graphics driver; GPU results may vary across drivers.
+The shell provides the pinned `sdf-view` command, Rust, Cargo, Python with
+Pillow, and the Vulkan loader. Vulkan uses the pinned Nix Mesa ICDs instead
+of the host's Mesa libraries; the default excludes the Lavapipe software ICD.
+The host still supplies the GPU device and kernel driver.
 
 ```sh
 nix develop path:.
-cargo build --locked --manifest-path "$SDF_VIEW_SOURCE/Cargo.toml"
-./target/debug/sdf-view dataset/Sphere/sdf.glsl -o target/sphere-preview.png
+sdf-view dataset/Sphere/sdf.glsl -o target/sphere-preview.png
+# Explicit CPU fallback when no compatible GPU is available:
+sdf-view-software dataset/Sphere/sdf.glsl -o target/sphere-preview-software.png
 python3 scripts/render_dataset.py
 python3 scripts/validate_dataset.py
 ```
+
+`sdf-view-software` uses the pinned Lavapipe Vulkan driver and can be much
+slower than hardware rendering. Neither command changes existing dataset
+artifacts unless its output path points to them.
 
 Pass model names to render selected samples, for example
 `python3 scripts/render_dataset.py Snail Elephant`. Rendering uses the settings
@@ -64,8 +71,9 @@ resolution and sampling error; see [the evaluator documentation](crates/sdf-eval
 
 - Dataset: https://github.com/tovacinni/sdf-explorer
 - Dataset revision: `c8b1b39796d18d2ad3e7442639ef51bf986eb187`
-- Renderer: https://github.com/d-itu/sdf-view
-- Renderer revision: `51ff7f4f9e026d852520263374056a6af0740bbc`
+- Renderer used for dataset images: https://github.com/d-itu/sdf-view
+- Dataset renderer revision: `51ff7f4f9e026d852520263374056a6af0740bbc`
+- Development shell renderer revision: `cfb01c7535db99cec2351408672d069101789596` (0.2.0)
 
 The dataset contains 63 GLSL models, each rendered to a 512 × 512 RGBA PNG.
 All models passed compilation, PNG decoding, shader hash, nonempty foreground,
