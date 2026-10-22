@@ -7,6 +7,10 @@ run on the CPU.
 It does not translate, rotate, or rescale either input. There is no shader
 hash calculation or validation.
 
+`sdf-eval topology` computes solid Betti numbers, their absolute differences,
+and an exact Betti match flag from occupied voxel cubes. See
+[the topology protocol](TOPOLOGY.md) for usage, connectivity, and validity rules.
+
 ## Build and run
 
 From the repository root, in the development environment:

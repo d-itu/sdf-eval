@@ -32,6 +32,9 @@ optional direnv use.
 
 ## GPU volumetric IoU
 
+The evaluator also supports `sdf-eval topology` for Betti numbers and per-pair
+Betti matching. See [the topology protocol](crates/sdf-eval/TOPOLOGY.md).
+
 The root Cargo workspace contains `crates/sdf-eval`. In the development shell:
 
 ```sh

@@ -4,6 +4,7 @@ mod mesh;
 mod metrics;
 mod shader;
 mod surface;
+mod topology;
 
 use std::{
     fs,
@@ -34,6 +35,8 @@ enum Command {
     Iou(IouArgs),
     /// Sample zero-isosurfaces and compute Chamfer distance and F-scores.
     Surface(SurfaceArgs),
+    /// Compare Betti numbers of occupied closed voxel cubes.
+    Topology(IouArgs),
 }
 
 #[derive(Args)]
@@ -59,7 +62,7 @@ struct IouArgs {
     /// xmin,ymin,zmin,xmax,ymax,zmax; neither input is transformed.
     #[arg(long, value_parser = parse_bounds, allow_hyphen_values = true)]
     bounds: [f32; 6],
-    /// Cells per axis: voxel centers for IoU, cell corners for surface extraction.
+    /// Cells per axis: centers for IoU/topology, corners for surface extraction.
     #[arg(long, default_value_t = 256)]
     resolution: u32,
     /// Maximum sample positions per batch; clamped to device limits.
@@ -82,8 +85,9 @@ fn parse_bounds(text: &str) -> Result<[f32; 6], String> {
 }
 
 fn run(command: Command) -> Result<bool> {
+    let topology = matches!(&command, Command::Topology(_));
     let (args, surface_options) = match command {
-        Command::Iou(args) => (args, None),
+        Command::Iou(args) | Command::Topology(args) => (args, None),
         Command::Surface(args) => (
             args.common,
             Some((args.samples, args.seed, args.thresholds)),
@@ -105,6 +109,12 @@ fn run(command: Command) -> Result<bool> {
         "requested_batch_size": settings.batch_size,
         "iou": null,
     });
+    if topology {
+        report.as_object_mut().unwrap().remove("iou");
+        report["metric"] = json!("topology");
+        report["metrics"] = serde_json::Value::Null;
+        report["complex"] = json!("closed_voxel_cubes");
+    }
     if let Some((samples, seed, thresholds)) = &surface_options {
         report.as_object_mut().unwrap().remove("iou");
         report["metric"] = json!("surface");
@@ -134,6 +144,8 @@ fn run(command: Command) -> Result<bool> {
                 thresholds,
                 &mut report,
             )
+        } else if topology {
+            topology::evaluate(&reference, &prediction, settings, &mut report)
         } else {
             Ok(serde_json::to_value(iou::evaluate(
                 &reference,

@@ -4,7 +4,7 @@ use anyhow::{Context, Result, ensure};
 use serde_json::{Value, json};
 use std::array;
 
-const HEADER: &str = r#"#version 450
+pub(crate) const HEADER: &str = r#"#version 450
 layout(local_size_x = 256) in;
 layout(set = 0, binding = 0, std140) uniform sdf_eval_Parameters {
     vec4 sdf_eval_lower;
@@ -13,24 +13,30 @@ layout(set = 0, binding = 0, std140) uniform sdf_eval_Parameters {
 };
 layout(set = 0, binding = 1, std430) buffer sdf_eval_Values { float sdf_eval_values[]; };
 "#;
-const MAIN: &str = r#"
+pub(crate) const MAIN: &str = r#"
 void main() {
     uint local = gl_GlobalInvocationID.x;
     if (local >= sdf_eval_grid.z) return;
     uint i = sdf_eval_grid.y + local;
     uint side = sdf_eval_grid.x;
-    vec3 fraction = vec3(i % side, (i / side) % side, i / (side * side)) / float(side - 1u);
+    vec3 position = vec3(i % side, (i / side) % side, i / (side * side));
+    vec3 fraction;
+    if (sdf_eval_grid.w == 1u)
+        fraction = (position + 0.5) / float(side);
+    else
+        fraction = position / float(side - 1u);
     vec3 p = sdf_eval_lower.xyz + fraction * (sdf_eval_upper.xyz - sdf_eval_lower.xyz);
     sdf_eval_values[local] = sdf(p);
 }
 "#;
 
-fn field(
+pub(crate) fn field(
     gpu: &Gpu,
     pipeline: &wgpu::ComputePipeline,
     settings: Settings,
+    centers: bool,
 ) -> Result<(Vec<f32>, u32)> {
-    let side = settings.resolution + 1;
+    let side = settings.resolution + u32::from(!centers);
     let total = side * side * side;
     let limits = gpu.device.limits();
     let batch = u64::from(settings.batch_size)
@@ -85,7 +91,7 @@ fn field(
             side,
             offset,
             count,
-            0,
+            u32::from(centers),
         ];
         let bytes: [u8; 48] = array::from_fn(|i| words[i / 4].to_le_bytes()[i % 4]);
         gpu.queue.write_buffer(&uniform, 0, &bytes);
@@ -148,7 +154,7 @@ pub fn evaluate(
             .with_context(|| format!("{name}_compile_failed"))?;
         report["stage"] = json!(format!("{name}_field"));
         let scope = gpu.device.push_error_scope(wgpu::ErrorFilter::Validation);
-        let result = field(&gpu, &pipeline, settings);
+        let result = field(&gpu, &pipeline, settings, false);
         if let Some(error) = futures::executor::block_on(scope.pop()) {
             return Err(anyhow::Error::from(error).context("gpu_execution_failed"));
         }

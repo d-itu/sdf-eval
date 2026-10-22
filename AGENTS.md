@@ -158,6 +158,16 @@ signed solid. See `crates/sdf-eval/README.md` for protocol and known limitations
 Keep generated predictions and evaluation results outside the reference
 dataset, in the ignored root-level `predictions/` and `results/` directories.
 
+## Topology evaluation
+
+`sdf-eval topology` reuses GPU field sampling at voxel centers and computes
+solid Betti numbers on the CPU for the union of occupied closed cubes.
+Foreground is 26-connected; complement components are 6-connected.
+Euler cell counts and bounded complement components determine the three ranks.
+Empty occupancy and occupied outer voxel layers retain raw topology but return
+null metrics and a nonzero exit. They must not count as exact matches.
+See `crates/sdf-eval/TOPOLOGY.md` for the protocol and memory limitations.
+
 ## Validation status and remaining work
 
 At handoff, all 63 models rendered successfully and passed the current
