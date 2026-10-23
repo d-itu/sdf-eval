@@ -1,0 +1,42 @@
+name: Build sdf-eval
+
+on:
+  push:
+    paths:
+      - .github/workflows/build-sdf-eval.yml
+      - Cargo.toml
+      - Cargo.lock
+      - crates/sdf-eval/**
+  pull_request:
+    paths:
+      - .github/workflows/build-sdf-eval.yml
+      - Cargo.toml
+      - Cargo.lock
+      - crates/sdf-eval/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Test without a GPU
+        run: cargo test --locked -p sdf-eval
+      - name: Build release binary
+        run: cargo build --locked --release -p sdf-eval
+      - name: Package binary and checksum
+        run: |
+          mkdir -p dist
+          tar -czf dist/sdf-eval-linux-x86_64-ubuntu22.04.tar.gz -C target/release sdf-eval
+          cd dist
+          sha256sum sdf-eval-linux-x86_64-ubuntu22.04.tar.gz > sdf-eval-linux-x86_64-ubuntu22.04.tar.gz.sha256
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sdf-eval-linux-x86_64-ubuntu22.04
+          path: dist/*
+          if-no-files-found: error
