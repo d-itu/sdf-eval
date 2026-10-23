@@ -1,0 +1,81 @@
+Verifier Template
+
+A guide for authors preparing task materials for Verifier. It covers the materials and evaluator package each task must provide, and includes a reference template authors can adapt.
+Responsibilities
+
+    The task author chooses how the evaluation is implemented, which metrics and rubrics it uses, and which supporting code or data it requires.
+    The entry point accepts the selected input files and options, runs the evaluation without interactive input, and writes the required evaluation output files.
+    Verifier prepares an isolated runtime, invokes the entry point, and copies its result files without modification. It does not calculate, interpret, validate, or rewrite scores.
+
+Each task provides exactly one evaluate.py in verification/. This is the stable entry point that Verifier discovers and invokes. When invoked, it must run the task’s complete evaluation and produce the required score outputs.
+
+{task-name}/
+└── verification/
+    ├── ...           # Evaluation scripts, metrics, and other resources
+    └── evaluate.py   # Entry point invoked by Verifier
+
+Task Materials
+
+    The Manager provides the generated deliverables as inputs to Verifier. Ground-truth and other reference materials come from the uploaded references.
+    The evaluation script receives only the materials selected by Verifier and cannot access task reconstruction inputs in input/.
+    Declare all required input arguments in evaluate.py so Verifier can provide every material needed to complete the evaluation.
+    By default, declare --gt and --gen in evaluate.py as the two required file arguments. Verifier uses --gt for the ground-truth model selected from the references and --gen for the generated model selected from the task outputs.
+    Declare any additional arguments with argparse and provide clear help text. Verifier reads these declarations and descriptions to match the arguments to the corresponding materials or options in the task card.
+
+Command-Line Arguments
+
+Each evaluate.py must declare the following four command-line arguments using argparse, with clear help descriptions:
+Argument	Description	Default
+--gt	Path to the ground-truth reference file.	None
+--gen	Path to the generated result file to evaluate.	None
+--json	Output path for the structured evaluation results in JSON format.	score.json
+--md	Output path for the human-readable evaluation report in Markdown format.	report.md
+Required Score Results
+
+A successful evaluation must produce both of the following files at the specified output paths:
+
+    JSON results (score.json by default): A structured, machine-readable file that must include a top-level total_score key containing the final total score as a numeric value. This key is mandatory and must not be omitted or renamed. All other fields and their structures may be defined by the task author according to the task’s evaluation requirements.
+    Markdown report (report.md by default): A human-readable report describing the evaluation methods and results, including the itemized scores, total score, and explanations of the scoring.
+
+Both files must report the same total score. Any itemized scores included in both files must also be consistent. The evaluation script is responsible for calculating the scores and writing both files; Verifier only invokes the script and copies its outputs.
+Example：
+
+# score.json
+{
+  "task_name": "Engineering Drawing-Based CAD Reconstruction",
+  "status": "geometry_only",
+  "materials_used": [
+    {
+      "role": "generated_model",
+      "path": "outputs/generated.step"
+    },
+    {
+      "role": "ground_truth",
+      "path": "references/ground_truth.step"
+    }
+  ],
+  "categories": [
+    {
+      "id": "surface",
+      "title": "Overall and Local Surface Geometry",
+      "status": "scored",
+      "earned_points": 11.70285634377948,
+      "max_points": 28,
+      "items": [
+        {
+          "id": "S01",
+          "title": "Surface F1-AUC (τ = 0.001L)",
+          "metric": "surface_f1_auc",
+          "metric_0_1": 0.3011575470639639,
+          "earned_points": 2.8108037725969965,
+          "max_points": 9.333333333333334
+        },
+        ...
+      ]
+    },
+  ],
+  "measurement_report": {
+    "path": "results/score.json"
+  },
+  "total_score": 70.96524427938381
+}
