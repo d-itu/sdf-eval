@@ -1,14 +1,29 @@
-Reconstruct the pictured object as a static 3D SDF in GLSL. Match its silhouette, proportions, and details; infer hidden surfaces. Ignore color, lighting, and background.
+# Task Instruction: {title}
 
-- Define `float sdf(vec3 p)`, negative inside and positive outside, suitable for sphere tracing.
-- Use +Y up; center the bounding box at the origin and choose a reasonable scale based on the image.
-- Use self-contained, Naga-compatible GLSL. No `#version`, `main`, uniforms, textures, bindings, or `sdf_view_` names.
-- You may use `https://github.com/d-itu/sdf-view` to render your output, compare it with the reference, and refine it.
+## Objective
 
-Example (unit sphere):
-```glsl
-float sdf(vec3 p) { return length(p) - 1.0; }
-```
+Reconstruct the depicted object as a static 3D signed distance field (SDF) in GLSL.
+Match its silhouette, proportions, and visible details across the provided reference images;
+infer surfaces that are not visible.
+Ignore color, lighting, and background.
+Use +Y as up, center the object's bounding box at the origin, and choose a scale consistent with the references.
 
-You may reason through the reconstruction and use tools such as Python.
-Write the final shader to `sdf.glsl` as plain GLSL, without Markdown.
+## Execution
+
+- Work autonomously; no interactive input or human feedback is available.
+- Define `float sdf(vec3 p)` with negative values inside and positive values outside. The field must be suitable for sphere tracing.
+- Write self-contained, Naga-compatible GLSL: no `#version`, `main`, uniforms, textures, resource bindings, or identifiers starting with `sdf_view_`.
+- Use the provided software, where applicable, to render and refine the shader against the references. Do not request clarification or rely on manual review.
+- Deliver plain GLSL at the designated output path, without Markdown fences.
+
+## Inputs
+
+{input}
+
+## Tools
+
+{tools}
+
+## Outputs
+
+{output}
