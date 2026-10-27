@@ -24,11 +24,22 @@ pub struct Metrics {
     pub f_scores: Vec<FScore>,
 }
 
-fn distances(source: &[Point], target: &[Point]) -> Result<Vec<f64>> {
+pub type Index = KdTree<f64, usize, Point>;
+
+pub fn index(points: &[Point]) -> Result<Index> {
     let mut tree = KdTree::new(3);
-    for (i, p) in target.iter().enumerate() {
+    for (i, p) in points.iter().enumerate() {
         tree.add(*p, i)?;
     }
+    Ok(tree)
+}
+
+#[cfg(test)]
+fn distances(source: &[Point], target: &[Point]) -> Result<Vec<f64>> {
+    indexed_distances(source, &index(target)?)
+}
+
+fn indexed_distances(source: &[Point], tree: &Index) -> Result<Vec<f64>> {
     source
         .iter()
         .map(|p| Ok(tree.nearest(p, 1, &squared_euclidean)?[0].0.sqrt()))
@@ -46,8 +57,17 @@ fn percentile(values: &[f64], percentile: f64) -> f64 {
 }
 
 pub fn compare(reference: &[Point], prediction: &[Point], thresholds: &[f64]) -> Result<Metrics> {
-    let pr = distances(prediction, reference)?;
-    let rp = distances(reference, prediction)?;
+    compare_indexed(reference, &index(reference)?, prediction, thresholds)
+}
+
+pub fn compare_indexed(
+    reference: &[Point],
+    reference_index: &Index,
+    prediction: &[Point],
+    thresholds: &[f64],
+) -> Result<Metrics> {
+    let pr = indexed_distances(prediction, reference_index)?;
+    let rp = indexed_distances(reference, &index(prediction)?)?;
     let mean = |d: &[f64]| d.iter().sum::<f64>() / d.len() as f64;
     let squared_mean = |d: &[f64]| d.iter().map(|x| x * x).sum::<f64>() / d.len() as f64;
     let prediction_to_reference_mean = mean(&pr);

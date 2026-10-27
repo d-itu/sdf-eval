@@ -118,6 +118,54 @@ pub(crate) fn field(
     Ok((field, batch))
 }
 
+pub(crate) fn sample_field(
+    gpu: &Gpu,
+    source: &str,
+    settings: Settings,
+    centers: bool,
+    name: &str,
+    report: &mut Value,
+) -> Result<Vec<f32>> {
+    report["stage"] = json!(format!("{name}_compile"));
+    let pipeline = gpu
+        .pipeline(
+            name,
+            format!("{HEADER}\n#line 1 1\n{source}\n#line 1 0\n{MAIN}"),
+        )
+        .with_context(|| format!("{name}_compile_failed"))?;
+    report["stage"] = json!(format!("{name}_field"));
+    let scope = gpu.device.push_error_scope(wgpu::ErrorFilter::Validation);
+    let memory = gpu.device.push_error_scope(wgpu::ErrorFilter::OutOfMemory);
+    let internal = gpu.device.push_error_scope(wgpu::ErrorFilter::Internal);
+    let result = field(gpu, &pipeline, settings, centers);
+    let internal_error = futures::executor::block_on(internal.pop());
+    let memory_error = futures::executor::block_on(memory.pop());
+    let validation_error = futures::executor::block_on(scope.pop());
+    if let Some(error) = internal_error.or(memory_error).or(validation_error) {
+        return Err(anyhow::Error::from(error).context("gpu_execution_failed"));
+    }
+    let (values, batch) = result?;
+    report["effective_batch_size"] = json!(batch);
+    Ok(values)
+}
+
+pub(crate) fn cloud(
+    gpu: &Gpu,
+    source: &str,
+    settings: Settings,
+    samples: usize,
+    seed: u64,
+    name: &str,
+    report: &mut Value,
+) -> Result<Vec<crate::mesh::Point>> {
+    let values = sample_field(gpu, source, settings, false, name, report)?;
+    report["stage"] = json!(format!("{name}_mesh"));
+    let mesh = Mesh::extract(&values, settings.bounds, settings.resolution)?;
+    drop(values);
+    report[format!("{name}_mesh")] = json!(mesh.info);
+    Ok(mesh.sample(samples, seed))
+}
+
 pub fn validate(samples: usize, thresholds: &[f64]) -> Result<()> {
     ensure!(samples > 0, "samples must be positive");
     ensure!(
@@ -140,34 +188,26 @@ pub fn evaluate(
     report["stage"] = json!("adapter_initialization");
     let gpu = Gpu::new().context("adapter_initialization_failed")?;
     report["adapter"] = json!(gpu.adapter);
-    let mut clouds = Vec::with_capacity(2);
-    for (name, source, stream_seed) in [
-        ("reference", reference, seed),
-        ("prediction", prediction, seed ^ 0x9e3779b97f4a7c15),
-    ] {
-        report["stage"] = json!(format!("{name}_compile"));
-        let pipeline = gpu
-            .pipeline(
-                name,
-                format!("{HEADER}\n#line 1 1\n{source}\n#line 1 0\n{MAIN}"),
-            )
-            .with_context(|| format!("{name}_compile_failed"))?;
-        report["stage"] = json!(format!("{name}_field"));
-        let scope = gpu.device.push_error_scope(wgpu::ErrorFilter::Validation);
-        let result = field(&gpu, &pipeline, settings, false);
-        if let Some(error) = futures::executor::block_on(scope.pop()) {
-            return Err(anyhow::Error::from(error).context("gpu_execution_failed"));
-        }
-        let (values, batch) = result?;
-        report["effective_batch_size"] = json!(batch);
-        report["stage"] = json!(format!("{name}_mesh"));
-        let mesh = Mesh::extract(&values, settings.bounds, settings.resolution)?;
-        drop(values);
-        report[format!("{name}_mesh")] = json!(mesh.info);
-        clouds.push(mesh.sample(samples, stream_seed));
-    }
+    let reference = cloud(
+        &gpu,
+        reference,
+        settings,
+        samples,
+        seed,
+        "reference",
+        report,
+    )?;
+    let prediction = cloud(
+        &gpu,
+        prediction,
+        settings,
+        samples,
+        seed ^ 0x9e3779b97f4a7c15,
+        "prediction",
+        report,
+    )?;
     report["stage"] = json!("nearest_neighbors");
-    let metrics = metrics::compare(&clouds[0], &clouds[1], thresholds)?;
+    let metrics = metrics::compare(&reference, &prediction, thresholds)?;
     report["stage"] = json!("complete");
     Ok(json!({
         "status": "ok",

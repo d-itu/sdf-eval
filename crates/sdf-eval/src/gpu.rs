@@ -4,7 +4,7 @@ use anyhow::{Context, Result, anyhow};
 use futures::{channel::oneshot, executor::block_on};
 use serde::Serialize;
 
-#[derive(Debug, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 pub struct Adapter {
     pub name: String,
     pub backend: String,

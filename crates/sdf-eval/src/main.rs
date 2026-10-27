@@ -1,3 +1,4 @@
+mod batch;
 mod gpu;
 mod iou;
 mod mesh;
@@ -37,6 +38,8 @@ enum Command {
     Surface(SurfaceArgs),
     /// Compare Betti numbers of occupied closed voxel cubes.
     Topology(IouArgs),
+    /// Evaluate a JSON manifest and stream one JSONL record per job and metric.
+    Batch(batch::Args),
 }
 
 #[derive(Args)]
@@ -85,6 +88,10 @@ fn parse_bounds(text: &str) -> Result<[f32; 6], String> {
 }
 
 fn run(command: Command) -> Result<bool> {
+    let command = match command {
+        Command::Batch(args) => return batch::run(args),
+        command => command,
+    };
     let topology = matches!(&command, Command::Topology(_));
     let (args, surface_options) = match command {
         Command::Iou(args) | Command::Topology(args) => (args, None),
@@ -92,6 +99,7 @@ fn run(command: Command) -> Result<bool> {
             args.common,
             Some((args.samples, args.seed, args.thresholds)),
         ),
+        Command::Batch(_) => unreachable!(),
     };
     let started = Instant::now();
     let settings = iou::Settings {

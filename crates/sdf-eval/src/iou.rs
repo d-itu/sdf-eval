@@ -99,10 +99,21 @@ pub fn evaluate(reference: &str, prediction: &str, settings: Settings) -> Result
     let reduce = gpu
         .pipeline("reduction", shader::reduce())
         .context("reduction_compile_failed")?;
+    evaluate_prepared(&gpu, &reference, prediction, &reduce, settings, None)
+}
+
+pub(crate) fn evaluate_prepared(
+    gpu: &Gpu,
+    reference: &wgpu::ComputePipeline,
+    prediction: wgpu::ComputePipeline,
+    reduce: &wgpu::ComputePipeline,
+    settings: Settings,
+    cache: Option<&mut Vec<wgpu::Buffer>>,
+) -> Result<Evaluation> {
     let scope = gpu.device.push_error_scope(wgpu::ErrorFilter::Validation);
     let memory = gpu.device.push_error_scope(wgpu::ErrorFilter::OutOfMemory);
     let internal = gpu.device.push_error_scope(wgpu::ErrorFilter::Internal);
-    let result = sample(&gpu, &reference, &prediction, &reduce, settings);
+    let result = sample(gpu, reference, &prediction, reduce, settings, cache);
     let internal_error = futures::executor::block_on(internal.pop());
     let memory_error = futures::executor::block_on(memory.pop());
     let validation_error = futures::executor::block_on(scope.pop());
@@ -127,7 +138,7 @@ pub fn evaluate(reference: &str, prediction: &str, settings: Settings) -> Result
         volume_samples: n * n * n,
         boundary_samples: 6 * n * n,
         effective_batch_size: batch,
-        adapter: gpu.adapter,
+        adapter: gpu.adapter.clone(),
     })
 }
 
@@ -137,6 +148,7 @@ fn sample(
     prediction: &wgpu::ComputePipeline,
     reduce: &wgpu::ComputePipeline,
     settings: Settings,
+    mut cache: Option<&mut Vec<wgpu::Buffer>>,
 ) -> Result<(Counts, u32)> {
     let n = settings.resolution;
     let volume = n * n * n;
@@ -155,7 +167,7 @@ fn sample(
     let occupancy = gpu.buffer(
         "reference occupancy",
         u64::from(batch) * 4,
-        wgpu::BufferUsages::STORAGE,
+        wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC | wgpu::BufferUsages::COPY_DST,
     );
     let partials = gpu.buffer(
         "partial counts",
@@ -187,6 +199,13 @@ fn sample(
         entries: &entries,
     });
     let mut accumulated = [0u64; 8];
+    // Only a complete cache may be reused after a failed prediction.
+    let reuse = cache
+        .as_ref()
+        .is_some_and(|c| c.len() == total.div_ceil(batch) as usize);
+    if !reuse && let Some(cache) = cache.as_mut() {
+        cache.clear();
+    }
     for offset in (0..total).step_by(batch as usize) {
         let count = batch.min(total - offset);
         let words = [
@@ -210,11 +229,36 @@ fn sample(
             .create_command_encoder(&wgpu::CommandEncoderDescriptor {
                 label: Some("IoU batch"),
             });
-        for (pipeline, groups) in [
-            (reference, count.div_ceil(256)),
-            (prediction, count.div_ceil(256)),
-            (reduce, 1),
-        ] {
+        let cache_index = (offset / batch) as usize;
+        if reuse {
+            encoder.copy_buffer_to_buffer(
+                &cache.as_ref().unwrap()[cache_index],
+                0,
+                &occupancy,
+                0,
+                u64::from(count) * 4,
+            );
+        } else {
+            {
+                let mut pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
+                    label: Some("reference occupancy"),
+                    timestamp_writes: None,
+                });
+                pass.set_pipeline(reference);
+                pass.set_bind_group(0, &group, &[]);
+                pass.dispatch_workgroups(count.div_ceil(256), 1, 1);
+            }
+            if let Some(cache) = cache.as_mut() {
+                let buffer = gpu.buffer(
+                    "cached reference occupancy",
+                    u64::from(count) * 4,
+                    wgpu::BufferUsages::COPY_SRC | wgpu::BufferUsages::COPY_DST,
+                );
+                encoder.copy_buffer_to_buffer(&occupancy, 0, &buffer, 0, u64::from(count) * 4);
+                cache.push(buffer);
+            }
+        }
+        for (pipeline, groups) in [(prediction, count.div_ceil(256)), (reduce, 1)] {
             let mut pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
                 label: Some("IoU pass"),
                 timestamp_writes: None,
