@@ -16,7 +16,7 @@ use std::{
     time::Instant,
 };
 
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, ensure};
 use clap::{Args, Parser, Subcommand};
 use serde_json::json;
 
@@ -101,6 +101,14 @@ fn run(command: Command) -> Result<bool> {
         ),
         Command::Batch(_) => unreachable!(),
     };
+    if let Some(output) = &args.output {
+        for input in [&args.reference, &args.prediction] {
+            ensure!(
+                !batch::same_file(input, output),
+                "output must not overwrite an input"
+            );
+        }
+    }
     let started = Instant::now();
     let settings = iou::Settings {
         bounds: args.bounds,

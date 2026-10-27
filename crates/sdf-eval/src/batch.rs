@@ -343,7 +343,7 @@ fn report(job: &Job, metric: Metric) -> Value {
     report
 }
 
-fn same_file(left: &Path, right: &Path) -> bool {
+pub(crate) fn same_file(left: &Path, right: &Path) -> bool {
     if let (Ok(left), Ok(right)) = (left.canonicalize(), right.canonicalize())
         && left == right
     {
