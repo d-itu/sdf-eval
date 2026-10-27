@@ -2,7 +2,7 @@
 use std::{
     collections::HashSet,
     fs,
-    io::{self, BufWriter, Write},
+    io::{self, BufWriter, Read, Write},
     panic::{self, AssertUnwindSafe},
     path::{Path, PathBuf},
     slice,
@@ -22,9 +22,9 @@ use crate::{
 
 #[derive(clap::Args)]
 pub struct Args {
-    /// JSON manifest; shader paths are relative to this file.
+    /// JSON manifest; defaults to stdin. Relative shader paths use the manifest directory or cwd.
     #[arg(long)]
-    input: PathBuf,
+    input: Option<PathBuf>,
     /// JSONL results; defaults to stdout.
     #[arg(long)]
     output: Option<PathBuf>,
@@ -97,12 +97,20 @@ struct Job {
     thresholds: Vec<f64>,
 }
 
-fn load(input: &Path) -> Result<Vec<Job>> {
-    let manifest: Manifest =
-        serde_json::from_str(&fs::read_to_string(input)?).context("invalid_manifest")?;
+fn load(input: Option<&Path>) -> Result<Vec<Job>> {
+    let (text, base) = if let Some(input) = input {
+        (
+            fs::read_to_string(input)?,
+            input.parent().unwrap_or_else(|| Path::new(".")),
+        )
+    } else {
+        let mut text = String::new();
+        io::stdin().lock().read_to_string(&mut text)?;
+        (text, Path::new("."))
+    };
+    let manifest: Manifest = serde_json::from_str(&text).context("invalid_manifest")?;
     ensure!(manifest.schema_version == 1, "unsupported schema_version");
     ensure!(!manifest.jobs.is_empty(), "jobs must not be empty");
-    let base = input.parent().unwrap_or_else(|| Path::new("."));
     let defaults = manifest.defaults;
     let empty = SurfaceOptions::default();
     let default_surface = defaults.surface.as_ref().unwrap_or(&empty);
@@ -360,7 +368,7 @@ pub(crate) fn same_file(left: &Path, right: &Path) -> bool {
 }
 
 pub fn run(args: Args) -> Result<bool> {
-    let jobs = load(&args.input)?;
+    let jobs = load(args.input.as_deref())?;
     // Snapshot reference contents once. A path alone is not a safe cache key.
     let references: Vec<_> = jobs
         .iter()
@@ -393,7 +401,7 @@ pub fn run(args: Args) -> Result<bool> {
     if let Some(output) = &args.output
         && output.exists()
     {
-        for path in [args.input.as_path()].into_iter().chain(
+        for path in args.input.as_deref().into_iter().chain(
             jobs.iter()
                 .flat_map(|j| [j.reference.as_path(), j.prediction.as_path()]),
         ) {

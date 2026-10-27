@@ -65,6 +65,7 @@ manifest with one GPU device shared across jobs:
 
 ```sh
 ./target/debug/sdf-eval batch --input jobs.json --output results/batch.jsonl
+./target/debug/sdf-eval batch --output results/batch.jsonl < jobs.json
 ```
 
 For a `jobs.json` at the repository root:
@@ -102,8 +103,9 @@ For a `jobs.json` at the repository root:
 
 `schema_version` must be 1 and `jobs` must be nonempty. Each job requires a
 nonempty unique `id`, input paths, and explicit shared `bounds`; there is no
-automatic fitting or alignment. Shader paths are relative to the manifest
-directory, not the current working directory. Absolute paths are accepted.
+automatic fitting or alignment. With `--input`, shader paths are relative to the
+manifest directory. Without `--input`, the manifest is read from stdin and
+shader paths are relative to the current working directory. Absolute paths are accepted.
 Unknown fields, duplicate metrics, and invalid settings reject the entire
 manifest before opening the output. Existing inputs must not be used as output.
 
