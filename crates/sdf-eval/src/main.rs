@@ -3,6 +3,7 @@ mod gpu;
 mod iou;
 mod mesh;
 mod metrics;
+mod self_check;
 mod shader;
 mod surface;
 mod topology;
@@ -40,6 +41,8 @@ enum Command {
     Topology(IouArgs),
     /// Evaluate a JSON manifest and stream one JSONL record per job and metric.
     Batch(batch::Args),
+    /// Assess a shader against its own zero set and test ray-march safety.
+    SelfCheck(self_check::Args),
 }
 
 #[derive(Args)]
@@ -90,6 +93,7 @@ fn parse_bounds(text: &str) -> Result<[f32; 6], String> {
 fn run(command: Command) -> Result<bool> {
     let command = match command {
         Command::Batch(args) => return batch::run(args),
+        Command::SelfCheck(args) => return self_check::run(args),
         command => command,
     };
     let topology = matches!(&command, Command::Topology(_));
@@ -99,7 +103,7 @@ fn run(command: Command) -> Result<bool> {
             args.common,
             Some((args.samples, args.seed, args.thresholds)),
         ),
-        Command::Batch(_) => unreachable!(),
+        Command::Batch(_) | Command::SelfCheck(_) => unreachable!(),
     };
     if let Some(output) = &args.output {
         for input in [&args.reference, &args.prediction] {

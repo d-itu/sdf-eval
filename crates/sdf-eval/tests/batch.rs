@@ -83,6 +83,13 @@ fn invalid_manifests_do_not_truncate_output() {
     let mut bad = original.clone();
     bad["jobs"] = json!([original["jobs"][0], original["jobs"][0]]);
     cases.push(bad);
+    let mut bad = original.clone();
+    bad["jobs"][0]["self_check"] = json!({"probes": 33});
+    bad["jobs"][0]["metrics"] = json!(["self_check"]);
+    cases.push(bad);
+    let mut bad = original.clone();
+    bad["jobs"][0].as_object_mut().unwrap().remove("reference");
+    cases.push(bad);
     let mut bad = original;
     bad["jobs"][0]["unknown"] = json!(true);
     cases.push(bad);
@@ -145,6 +152,89 @@ fn output_must_not_overwrite_inputs() {
         serde_json::from_slice::<Value>(&fs::read(input).unwrap()).unwrap(),
         manifest()
     );
+}
+
+#[test]
+#[ignore = "requires a compute adapter"]
+fn self_check_batch_supports_single_input_and_mixed_metrics() {
+    let work = Workspace::new();
+    let fixtures = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures");
+    fs::copy(fixtures.join("sphere.glsl"), work.0.join("sphere.glsl")).unwrap();
+    fs::copy(
+        fixtures.join("overscaled_sphere.glsl"),
+        work.0.join("high.glsl"),
+    )
+    .unwrap();
+    fs::write(work.0.join("bad.glsl"), "invalid GLSL").unwrap();
+    let input = json!({"schema_version": 1,
+    "defaults": {"metrics": ["self_check"],
+        "self_check": {"probes": 8, "rays": 12, "oracle_steps": 512}},
+    "jobs": [
+        {"id": "single", "prediction": "sphere.glsl", "bounds": [-2,-2,-2,2,2,2]},
+        {"id": "high", "prediction": "high.glsl", "bounds": [-2,-2,-2,2,2,2],
+            "self_check": {"probes": 8, "rays": 12, "oracle_steps": 512}},
+        {"id": "mixed", "reference": "sphere.glsl", "prediction": "sphere.glsl",
+            "bounds": [-2,-2,-2,2,2,2], "metrics": ["iou", "self_check"]},
+        {"id": "bad", "prediction": "bad.glsl", "bounds": [-2,-2,-2,2,2,2]},
+        {"id": "missing", "prediction": "absent.glsl", "bounds": [-2,-2,-2,2,2,2]}
+    ]});
+    let output = work.run(&input, &[]);
+    assert!(!output.status.success());
+    let rows = records(&output);
+    assert_eq!(rows.len(), 6, "{}", String::from_utf8_lossy(&output.stderr));
+    let get = |id: &str, metric: &str| {
+        rows.iter()
+            .find(|r| r["id"] == id && r["metric"] == metric)
+            .unwrap()
+    };
+    let single = get("single", "self_check");
+    assert_eq!(single["status"], "ok", "{single}");
+    assert!(single["metrics"]["field"].get("probes").is_none());
+    assert!(single["metrics"]["rays"].get("total").is_none());
+    assert_eq!(single["input"]["field"]["probes_per_axis"], 8);
+    assert_eq!(single["input"]["rays"]["rays_per_face_side"], 12);
+    assert_eq!(single["input"]["rays"]["oracle_steps"], 512);
+    assert_eq!(
+        single["input"]["bounds"],
+        json!([-2.0, -2.0, -2.0, 2.0, 2.0, 2.0])
+    );
+    assert!(single["input"]["epsilon"].as_f64().unwrap() > 0.0);
+    assert!(single.get("resolution").is_none());
+    assert!(single.get("requested_batch_size").is_none());
+    assert!(single.get("probes_per_axis").is_none());
+    assert!(single.get("reference").is_none());
+    assert!(
+        get("high", "self_check")["metrics"]["field"]["overshoot_fraction"]
+            .as_f64()
+            .unwrap()
+            > 0.0
+    );
+    assert_eq!(get("mixed", "iou")["status"], "ok");
+    assert_eq!(get("mixed", "self_check")["metrics"], single["metrics"]);
+    assert_eq!(get("bad", "self_check")["status"], "shader_compile_failed");
+    assert_eq!(
+        get("missing", "self_check")["status"],
+        "prediction_read_failed"
+    );
+    let direct = Command::new(env!("CARGO_BIN_EXE_sdf-eval"))
+        .arg("self-check")
+        .arg("--shader")
+        .arg(work.0.join("sphere.glsl"))
+        .args([
+            "--bounds=-2,-2,-2,2,2,2",
+            "--probes",
+            "8",
+            "--rays",
+            "12",
+            "--oracle-steps",
+            "512",
+        ])
+        .output()
+        .unwrap();
+    assert!(direct.status.success());
+    let direct: Value = serde_json::from_slice(&direct.stdout).unwrap();
+    assert_eq!(single["metrics"], direct["metrics"]);
+    assert_eq!(single["input"], direct["input"]);
 }
 
 #[test]
