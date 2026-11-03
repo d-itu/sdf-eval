@@ -1,0 +1,54 @@
+name: Build verification
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - Cargo.toml
+      - Cargo.lock
+      - crates/sdf-eval/**
+      - verification/**
+      - scripts/build_verification.py
+      - scripts/smoke_verification.py
+      - scripts/render_views.py
+      - scripts/evaluate_images.py
+      - .github/workflows/build-verification.yml
+  pull_request:
+    paths:
+      - Cargo.toml
+      - Cargo.lock
+      - crates/sdf-eval/**
+      - verification/**
+      - scripts/build_verification.py
+      - scripts/smoke_verification.py
+      - scripts/render_views.py
+      - scripts/evaluate_images.py
+      - .github/workflows/build-verification.yml
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    env:
+      UV_PYTHON_INSTALL_DIR: ${{ github.workspace }}/.work/python
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: astral-sh/setup-uv@v6
+      - name: Install renderer build dependencies
+        run: sudo apt-get update && sudo apt-get install -y pkg-config libwayland-dev libxkbcommon-dev libvulkan-dev libvulkan1 mesa-vulkan-drivers
+      - name: Test sdf-eval without a GPU
+        run: cargo test --locked -p sdf-eval
+      - name: Build upload directory
+        run: python3 scripts/build_verification.py
+      - name: Preserve executable permissions
+        run: tar -C dist -cf dist/verification.tar verification
+      - name: Upload verification directory
+        uses: actions/upload-artifact@v4
+        with:
+          name: verification-ubuntu24.04-python311-x86_64
+          path: dist/verification.tar
+          compression-level: 0
+          if-no-files-found: error

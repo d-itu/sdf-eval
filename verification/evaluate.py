@@ -2,11 +2,14 @@
 """Score an aligned GLSL SDF against a task-specific reference shader."""
 
 import argparse
+import importlib.util
 import json
 import math
 import subprocess
 import sys
 from pathlib import Path
+
+from runtime import bootstrap
 
 IOU_RESOLUTION = 256
 SURFACE_RESOLUTION = 128
@@ -97,6 +100,8 @@ def score(gt, gen, binary, bounds):
         report["status"] = "invalid_submission"
         report["reason"] = iou["status"]
         return report
+    if iou["status"] not in ("ok", "empty_union", "non_finite_values"):
+        raise EvaluationError(f"IoU evaluation failed: {iou['status']}: {iou.get('error', '')}")
     counts = iou.get("counts")
     if not isinstance(counts, dict):
         raise EvaluationError("IoU counts are missing")
@@ -212,10 +217,70 @@ def markdown(report):
     lines += ["", f"Total score: {report['total_score']} / 100", "",
               "IoU and topology use occupied voxel centers; surface F-score uses independently sampled zero-isosurfaces.",
               "Neither shader is aligned or rescaled. See settings in score.json for sampling parameters.", ""]
+    if "image_metrics" in report:
+        images = report["image_metrics"]
+        lines += ["## Image metrics (not included in total score)", "",
+                  f"Status: {images['status']}", ""]
+        if images["status"] == "ok":
+            lines += [f"SSIM: {images['metrics']['ssim_mean']}",
+                      f"LPIPS: {images['metrics']['lpips_mean']}", ""]
+        elif "reason" in images:
+            lines += [images["reason"], ""]
     return "\n".join(lines)
 
 
+def helper(name):
+    root = Path(__file__).resolve().parent
+    path = root / f"{name}.py"
+    if not path.exists():
+        path = root.parent / "scripts" / f"{name}.py"
+    spec = importlib.util.spec_from_file_location(name, path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def score_images(args, report):
+    config = json.loads(args.image_config.read_text())
+    allowed = {"distance", "target", "azimuths", "elevations", "top", "bottom",
+               "fov", "width", "height", "antialiasing"}
+    if not isinstance(config, dict) or not config.keys() <= allowed or "distance" not in config:
+        raise EvaluationError("image config must contain distance and only documented camera/render options")
+    # Reuse the renderer's CLI validation before starting any render.
+    render_script = Path(helper("render_views").__file__)
+    root = args.artifacts.resolve()
+    if root.exists():
+        raise EvaluationError(f"artifact directory already exists: {root}")
+    for role, shader in (("reference", args.gt), ("prediction", args.gen)):
+        if role == "prediction" and report["status"] == "invalid_submission":
+            report["image_metrics"] = {"status": "invalid_submission", "reason": report["reason"]}
+            return
+        command = [sys.executable, str(render_script), str(shader.resolve()),
+                   "--output", str(root / role), "--renderer", str(args.renderer.resolve())]
+        options = {"azimuths": 8, "elevations": [-30, 0, 30], "top": True, "bottom": True,
+                   "antialiasing": 4} | config
+        for key, value in options.items():
+            if key in ("top", "bottom"):
+                if type(value) is not bool:
+                    raise EvaluationError(f"{key} must be boolean")
+                if value:
+                    command.append(f"--{key}")
+            else:
+                encoded = ",".join(map(str, value)) if isinstance(value, list) else str(value)
+                command.append(f"--{key.replace('_', '-')}={encoded}")
+        result = subprocess.run(command, capture_output=True, text=True, timeout=3600)
+        if result.returncode:
+            # Renderer errors cannot reliably distinguish a driver fault from a shader fault.
+            raise EvaluationError(f"{role} rendering failed: {result.stderr.strip()}")
+    images = helper("evaluate_images")
+    report["image_metrics"] = images.evaluate(argparse.Namespace(
+        reference=root / "reference/views.json", prediction=root / "prediction/views.json",
+        device="cpu", cache_dir=args.weights,
+    ))
+
+
 def main():
+    package = Path(__file__).resolve().parent
     parser = argparse.ArgumentParser(description="Score an aligned generated GLSL SDF against a reference.")
     parser.add_argument("--gt", type=Path, required=True, help="Ground-truth GLSL SDF file from verification references.")
     parser.add_argument("--gen", type=Path, required=True, help="Generated GLSL SDF file from task outputs.")
@@ -223,19 +288,27 @@ def main():
     parser.add_argument("--md", type=Path, default=Path("report.md"), help="Markdown report output path (default: report.md).")
     parser.add_argument("--bounds", type=bounds_arg, required=True,
                         help="Task-specific xmin,ymin,zmin,xmax,ymax,zmax in shader coordinates.")
-    parser.add_argument("--evaluator", type=Path, default=Path("./sdf-eval"),
-                        help="Path to the sdf-eval binary (default: ./sdf-eval in the current directory).")
+    parser.add_argument("--evaluator", type=Path, default=package / "bin/sdf-eval",
+                        help="Path to sdf-eval (default: bin/sdf-eval beside this entry point).")
+    parser.add_argument("--image-config", type=Path, help="Fixed reference-derived image camera configuration JSON; enables SSIM/LPIPS.")
+    parser.add_argument("--renderer", type=Path, default=package / "bin/sdf-view", help="Path to sdf-view.")
+    parser.add_argument("--artifacts", type=Path, default=Path("image-artifacts"), help="New directory for rendered evaluation images.")
+    parser.add_argument("--weights", type=Path, default=package / "weights", help="Torch weight cache containing checkpoints/.")
     args = parser.parse_args()
+    if args.image_config:
+        bootstrap()
     if args.json.resolve() == args.md.resolve():
         parser.error("--json and --md must be different paths")
     try:
         result = score(args.gt, args.gen, args.evaluator, args.bounds)
+        if args.image_config:
+            score_images(args, result)
         text = json.dumps(result, indent=2, allow_nan=False) + "\n"
         for path in (args.json, args.md):
             path.parent.mkdir(parents=True, exist_ok=True)
         args.json.write_text(text, encoding="utf-8")
         args.md.write_text(markdown(result), encoding="utf-8")
-    except (EvaluationError, OSError) as error:
+    except (EvaluationError, OSError, ValueError, RuntimeError, ImportError, subprocess.SubprocessError) as error:
         print(f"evaluation error: {error}", file=sys.stderr)
         return 1
     return 0

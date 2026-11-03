@@ -1,0 +1,24 @@
+[project]
+name = "sdf-bench-verification"
+version = "0.1.0"
+requires-python = ">=3.11,<3.12"
+dependencies = [
+  "lpips==0.1.4",
+  "numpy",
+  "pillow",
+  "scikit-image",
+  "torch",
+  "torchvision",
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }
+torchvision = { index = "pytorch-cpu" }
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true

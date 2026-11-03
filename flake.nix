@@ -71,7 +71,6 @@
               pkg-config
               git
               curl
-              (python3.withPackages (ps: [ ps.pillow ]))
             ];
 
             RUST_SRC_PATH = "${pkgs.rustPlatform.rustLibSrc}";
@@ -79,11 +78,14 @@
 
             shellHook = ''
               export CARGO_TARGET_DIR="$PWD/target"
+              export UV_PYTHON_INSTALL_DIR="$PWD/.work/python"
+              export UV_PYTHON_DOWNLOADS=never
               export WGPU_BACKEND=vulkan
               export LD_LIBRARY_PATH="${
                 pkgs.lib.makeLibraryPath [
                   pkgs.vulkan-loader
                   pkgs.stdenv.cc.cc.lib
+                  pkgs.zlib
                 ]
               }''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
               VK_DRIVER_FILES=

@@ -4,10 +4,14 @@ target/
 dist/
 .cache/
 .work/
+dist/
+verification/.venv/
+verification/.runtime/
+verification/weights/
+.work/
 __pycache__/
 *.py[cod]
 .venv/
-.venv-images/
 .pytest_cache/
 .ruff_cache/
 /predictions/

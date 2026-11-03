@@ -2,14 +2,6 @@
 
 This rubric applies to one task with a ground-truth signed GLSL SDF and an aligned generated GLSL SDF. The verifier receives only `--gt`, `--gen`, and task-specific options; it cannot access the reconstruction images in `input/`. Scores measure geometry in the reference coordinate frame, not visual appearance or the agent's process. The four capability areas in the verifier guide are represented by observable geometry and executable-output evidence; input understanding and tool use cannot be scored independently from these files.
 
-## Materials and invocation
-
-Upload `verification/evaluate.py`, this `verification/scoring.md`, the task's reference shader (for `--gt`), and an executable Linux x86_64 `verification/sdf-eval`. Run the entry point from `verification/` so its default evaluator path `./sdf-eval` finds that binary; otherwise pass `--evaluator` explicitly. The binary must be built from this repository's `Cargo.lock` (`sdf-eval` 0.1.0, wgpu 30.0.1); the GitHub Actions artifact supplies an Ubuntu 22.04 build and SHA-256 checksum. Python 3 standard library and a working Vulkan compute adapter/driver are required at runtime. A CPU Vulkan adapter is acceptable if explicitly configured. Confirm the uploaded executable's permissions and run an evaluation on the actual verifier host before submission. No network access or build step is required at evaluation time.
-
-From `verification/`, run `python3 evaluate.py --gt reference.glsl --gen ../output/sdf.glsl --bounds=-2,-2,-2,2,2,2 --json score.json --md report.md`. The bounds shown are **only an example**; choose them for each task before evaluating submissions, with the entire reference strictly inside the box and enough resolution to capture its volume and zero surface. Pass the same immutable bounds for all submissions to that task. The `--evaluator` option can override the binary path for local testing or when the verifier invokes the entry point from another directory. The verifier invokes the script and copies the resulting files without changing or interpreting scores.
-
-The task instructions should require the reference coordinate frame and scale; an unconstrained scale makes an aligned-field score ambiguous. Neither input is translated, rotated, scaled, or repaired during evaluation. Ground-truth shaders with unsigned interiors, empty occupied samples, missing zero crossings, or boundary-clipped geometry are not eligible for this rubric. Select another rubric or fix the reference/task setup; do not silently substitute a different metric.
-
 ## Scoring
 
 | Item | Metric and computation | Maximum |

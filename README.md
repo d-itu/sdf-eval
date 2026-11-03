@@ -34,6 +34,12 @@ Regenerate the gallery after rendering with `scripts/validate_dataset.py`.
 
 ## Multi-view rendering
 
+For the combined geometry and image entry point, locked Python 3.11 development
+environment, and Ubuntu 24.04 production upload builder, see
+[verification/README.md](verification/README.md). Production bundles contain
+both Rust tools, CPU Python wheels, and AlexNet weights; SSIM/LPIPS are reported
+separately from the existing geometry score.
+
 Render an arbitrary SDF into a new directory outside `dataset/`:
 
 ```sh
@@ -55,17 +61,15 @@ view fails, the script prints the error and leaves no output directory.
 ## Image evaluation
 
 `scripts/evaluate_images.py` compares paired multi-view renders with RGB SSIM
-(higher is better) and AlexNet LPIPS v0.1 (lower is better). Install `numpy`,
-`Pillow`, `scikit-image`, `torch`, `torchvision`, and `lpips` in a project-local
-Python environment. The Nix shell supplies Pillow and the C++ runtime needed
-by PyTorch wheels; re-enter the shell after updating it. For example,
-with uv available:
+(higher is better) and AlexNet LPIPS v0.1 (lower is better). It shares the
+locked Python 3.11 environment in `verification/.venv` with the verification
+tools, including NumPy, Pillow, scikit-image, CPU PyTorch, torchvision, and
+LPIPS. The Nix shell supplies the native runtime libraries; re-enter the shell
+after updating it. From the repository root, with uv and Python 3.11 available:
 
 ```sh
-UV_CACHE_DIR="$PWD/results/.cache/uv" uv venv .venv-images
-UV_CACHE_DIR="$PWD/results/.cache/uv" uv pip install --python .venv-images/bin/python \
-  numpy pillow scikit-image torch torchvision lpips
-.venv-images/bin/python scripts/evaluate_images.py \
+uv sync --project verification --locked
+verification/.venv/bin/python scripts/evaluate_images.py \
   --reference results/Sphere/reference_views/views.json \
   --prediction results/Sphere/prediction_views/views.json \
   --output results/Sphere/image_metrics.json
@@ -141,8 +145,8 @@ antialiasing for 26 views. Image similarity does not measure hidden internal
 geometry; retain the geometric metrics when that matters.
 
 Run lightweight manifest tests with
-`python3 -m unittest discover -s scripts -p 'test_*views.py'` and
-`python3 -m unittest discover -s scripts -p 'test_evaluate_images.py'`.
+`verification/.venv/bin/python -m unittest discover -s scripts -p 'test_*views.py'` and
+`verification/.venv/bin/python -m unittest discover -s scripts -p 'test_evaluate_images.py'`.
 To additionally test actual SSIM/LPIPS identity, transparency, and geometry
 changes, run the latter command with the metric environment's Python and
 `RUN_LPIPS_TESTS=1`; this may download pretrained weights.
