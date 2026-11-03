@@ -52,6 +52,101 @@ pass `--renderer sdf-view-software`; `--width`, `--height`, `--fov`, and
 `--timeout` are also configurable. The output directory must not exist; if any
 view fails, the script prints the error and leaves no output directory.
 
+## Image evaluation
+
+`scripts/evaluate_images.py` compares paired multi-view renders with RGB SSIM
+(higher is better) and AlexNet LPIPS v0.1 (lower is better). Install `numpy`,
+`Pillow`, `scikit-image`, `torch`, `torchvision`, and `lpips` in a project-local
+Python environment. The Nix shell supplies Pillow and the C++ runtime needed
+by PyTorch wheels; re-enter the shell after updating it. For example,
+with uv available:
+
+```sh
+UV_CACHE_DIR="$PWD/results/.cache/uv" uv venv .venv-images
+UV_CACHE_DIR="$PWD/results/.cache/uv" uv pip install --python .venv-images/bin/python \
+  numpy pillow scikit-image torch torchvision lpips
+.venv-images/bin/python scripts/evaluate_images.py \
+  --reference results/Sphere/reference_views/views.json \
+  --prediction results/Sphere/prediction_views/views.json \
+  --output results/Sphere/image_metrics.json
+```
+
+The output must be a new file. CPU is the default; pass `--device cuda` for
+CUDA. Pretrained AlexNet weights download on first use to
+`results/.cache/torch` (override with `--cache-dir`); prepare this cache before
+offline evaluation. Dependencies and pretrained weights must be available for
+scoring. Reports record package versions, metric parameters, cameras, shared
+render settings, each view's scores, and the unweighted mean over all views.
+For dataset aggregation, average the per-model means with equal model weights.
+Do not assume LPIPS is bounded by 1 or convert it to a percentage.
+
+### `views.json` contract
+
+The evaluator accepts the manifest written by `render_views.py`:
+
+```json
+{
+  "schema_version": 1,
+  "shader": "/path/to/sdf.glsl",
+  "renderer": "sdf-view",
+  "distance": 3,
+  "render": {
+    "width": 512,
+    "height": 512,
+    "antialiasing": 4,
+    "background": "transparent",
+    "light_direction": [-0.5, 0.8, 1],
+    "light_color": "white",
+    "object_color": "rgb(137,196,237)",
+    "light_intensity": 0.85,
+    "ambient": 0.15
+  },
+  "views": [
+    {
+      "image": "az000_el+00.png",
+      "azimuth": 0,
+      "elevation": 0,
+      "camera_position": [0, 0, 3],
+      "camera_target": [0, 0, 0],
+      "camera_up": [0, 1, 0],
+      "fov": 45
+    }
+  ]
+}
+```
+
+`schema_version` is 1; legacy manifests without this field are treated as v1.
+All shown `render` fields are required. `views` must be nonempty, with unique
+relative image paths contained within the manifest directory (no `..`). Each
+view requires `image`, three finite 3D camera vectors, and `fov` in (0, 180).
+`azimuth` and `elevation` are optional labels; `shader`, `renderer`, and
+`distance` are provenance only and do not control matching. Use the same
+renderer version/backend for both inputs; the manifest cannot verify the
+renderer binary or the actual settings used to produce an image.
+
+Views are paired by image name, independently of list order. Both manifests
+must have exactly the same image names, shared render object, and per-view
+camera parameters. Images must be RGBA PNGs matching the declared dimensions
+(at least 64 pixels on each axis for AlexNet LPIPS). Missing, invalid, or mismatched inputs fail
+the whole evaluation; views are never silently skipped and no new report is
+published on failure.
+
+RGBA is composited onto white using `rgb * alpha + (1 - alpha)` in normalized
+sRGB values, without linearization. SSIM uses `data_range=1`, Gaussian weights,
+sigma 1.5, and population covariance. LPIPS receives RGB tensors in [-1, 1].
+There is no resizing, crop, alignment, or camera fitting during evaluation.
+Choose cameras using only the reference and reuse them for every prediction.
+For example, fix 8 azimuths, elevations -30/0/30, top and bottom, and 4x
+antialiasing for 26 views. Image similarity does not measure hidden internal
+geometry; retain the geometric metrics when that matters.
+
+Run lightweight manifest tests with
+`python3 -m unittest discover -s scripts -p 'test_*views.py'` and
+`python3 -m unittest discover -s scripts -p 'test_evaluate_images.py'`.
+To additionally test actual SSIM/LPIPS identity, transparency, and geometry
+changes, run the latter command with the metric environment's Python and
+`RUN_LPIPS_TESTS=1`; this may download pretrained weights.
+
 The build uses the default Cargo dev profile and writes build outputs to
 `target/` inside this repository. The shell preserves the user's `CARGO_HOME`
 and `XDG_CACHE_HOME` settings. Nix manages its own store. `.envrc` supports

@@ -81,7 +81,10 @@
               export CARGO_TARGET_DIR="$PWD/target"
               export WGPU_BACKEND=vulkan
               export LD_LIBRARY_PATH="${
-                pkgs.lib.makeLibraryPath [ pkgs.vulkan-loader ]
+                pkgs.lib.makeLibraryPath [
+                  pkgs.vulkan-loader
+                  pkgs.stdenv.cc.cc.lib
+                ]
               }''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
               VK_DRIVER_FILES=
               for icd in ${mesaIcdDir}/*_icd.*.json; do

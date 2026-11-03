@@ -115,6 +115,7 @@ def render(args):
                 raise RuntimeError(f"{view['image']}: {result.stderr.strip() or result.stdout.strip() or f'renderer exited with code {result.returncode}'}")
             print(f"Rendered {view['image']}", flush=True)
         manifest = {
+            "schema_version": 1,
             "shader": str(args.input.resolve()),
             "renderer": args.renderer,
             "distance": args.distance,
