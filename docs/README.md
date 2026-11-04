@@ -22,7 +22,8 @@ All command examples assume the repository root as the working directory.
 - `crates/sdf-eval/`: Rust GPU field evaluation and CPU surface/topology analysis.
 - `scripts/`: rendering, camera fitting, dataset validation, image comparison,
   and verification build/smoke tools.
-- `verification/`: scoring entry point, runtime bootstrap, and locked Python environment.
+- `verification/`: production entry point under `scripts/`, runtime bootstrap,
+  scoring rubric source, tests, and locked Python development environment.
 - `.github/workflows/`: Ubuntu verification bundle build.
 - `preview.html`: offline dataset review gallery.
 - `predictions/`, `results/`, `target/`: ignored predictions, evaluation artifacts,

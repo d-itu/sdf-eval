@@ -37,13 +37,19 @@ def main():
             command = [sys.executable, str(args.entry.resolve()), "--reference", str(reference),
                        "--output", str(output),
                        "--image-config", str(config), "--artifacts", str(work / case / "images"),
+                       "--report", str(work / f"{case}.details.json"),
                        "--score", str(work / f"{case}.json")]
             for key in ("evaluator", "renderer", "weights"):
                 value = getattr(args, key)
                 if value:
                     command += [f"--{key}", str(value.resolve())]
             subprocess.run(command, cwd=work, check=True, timeout=1800)
-            reports[case] = json.loads((work / f"{case}.json").read_text())
+            result = json.loads((work / f"{case}.json").read_text())
+            reports[case] = json.loads((work / f"{case}.details.json").read_text())
+            items = result["Physical, Geometric, and Structural Capability"]["Geometric Form and Topological Structure"]
+            total = sum(item["score"] * item["weight"] for item in items)
+            if abs(total - result["total_score"]) > 1e-8 or result["total_score"] != reports[case]["total_score"]:
+                raise RuntimeError("production scores disagree with the diagnostic report")
         same = reports["identical"]["image_metrics"]["metrics"]
         changed = reports["changed"]["image_metrics"]["metrics"]
         if not (same["ssim_mean"] > 0.999 and abs(same["lpips_mean"]) < 1e-5):

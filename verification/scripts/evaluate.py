@@ -210,7 +210,7 @@ def helper(name):
     root = Path(__file__).resolve().parent
     path = root / f"{name}.py"
     if not path.exists():
-        path = root.parent / "scripts" / f"{name}.py"
+        path = root.parents[1] / "scripts" / f"{name}.py"
     spec = importlib.util.spec_from_file_location(name, path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -256,17 +256,48 @@ def score_images(args, report):
     ))
 
 
+def scoring_result(report):
+    """Convert diagnostic points to the production capability schema."""
+    items = [
+        {"name": item["title"],
+         "score": 100.0 * item["earned_points"] / item["max_points"],
+         "weight": item["max_points"] / 100.0}
+        for item in report["items"]
+    ]
+    total = sum(item["score"] * item["weight"] for item in items)
+    if not math.isclose(total, report["total_score"], abs_tol=1e-10):
+        raise EvaluationError("diagnostic points contradict the total score")
+    return {
+        "Physical, Geometric, and Structural Capability": {
+            "Geometric Form and Topological Structure": items,
+        },
+        "total_score": report["total_score"],
+    }
+
+
+def validate_destination(parser, path, reference, output, label):
+    destination = path.resolve()
+    if path.is_dir():
+        parser.error(f"{label} must be a file path, not a directory")
+    if any(destination.is_relative_to(root.resolve()) for root in (reference, output)):
+        parser.error(f"{label} must be outside the reference and submission directories")
+
+
 def main():
     package = Path(__file__).resolve().parent
     parser = argparse.ArgumentParser(description="Score an aligned generated GLSL SDF against a reference.")
     parser.add_argument("--reference", type=Path, required=True, help="Reference directory containing sdf.glsl.")
     parser.add_argument("--output", type=Path, required=True, help="Prediction directory containing sdf.glsl.")
-    parser.add_argument("--score", type=Path, required=True, help="JSON score output file.")
+    parser.add_argument("--score", type=Path, default=Path("score.json"),
+                        help="JSON score file outside the input directories (default: score.json in the working directory).")
+    parser.add_argument("--report", type=Path,
+                        help="Optional diagnostic JSON file with raw metrics, settings, status, and image metrics.")
     parser.add_argument("--bounds", type=bounds_arg, default=(-2.0, -2.0, -2.0, 2.0, 2.0, 2.0),
                         help="Optional xmin,ymin,zmin,xmax,ymax,zmax (default: -2,-2,-2,2,2,2).")
     parser.add_argument("--evaluator", type=Path, default=package / "bin/sdf-eval",
                         help="Path to sdf-eval (default: bin/sdf-eval beside this entry point).")
-    parser.add_argument("--image-config", type=Path, help="Fixed reference-derived image camera configuration JSON; enables SSIM/LPIPS.")
+    parser.add_argument("--image-config", type=Path,
+                        help="Fixed reference-derived camera JSON; enables SSIM/LPIPS. Defaults to reference/image-config.json when present.")
     parser.add_argument("--renderer", type=Path, default=package / "bin/sdf-view", help="Path to sdf-view.")
     parser.add_argument("--artifacts", type=Path, default=Path("image-artifacts"), help="New directory for rendered evaluation images.")
     parser.add_argument("--weights", type=Path, default=package / "weights", help="Torch weight cache containing checkpoints/.")
@@ -275,19 +306,31 @@ def main():
         parser.error("--reference must be a directory")
     if not args.output.is_dir():
         parser.error("--output must be a directory")
+    if args.image_config is None and (args.reference / "image-config.json").is_file():
+        args.image_config = args.reference / "image-config.json"
     gt = args.reference / "sdf.glsl"
     gen = args.output / "sdf.glsl"
-    if args.score.resolve() in (gt.resolve(), gen.resolve()):
-        parser.error("--score must not overwrite a shader")
-    if args.image_config:
-        bootstrap()
+    validate_destination(parser, args.score, args.reference, args.output, "--score")
+    if args.report:
+        validate_destination(parser, args.report, args.reference, args.output, "--report")
+        if args.report.resolve() == args.score.resolve():
+            parser.error("--report and --score must be different files")
+    protected = [path.resolve() for path in (args.image_config, args.evaluator, args.renderer) if path]
+    if any(path.resolve() in protected for path in (args.score, args.report) if path):
+        parser.error("result files must not overwrite evaluation resources")
     try:
+        if args.image_config:
+            bootstrap()
         result = score(gt, gen, args.evaluator, args.bounds)
         if args.image_config:
             args.gt = gt
             args.gen = gen
             score_images(args, result)
-        text = json.dumps(result, indent=2, allow_nan=False) + "\n"
+        text = json.dumps(scoring_result(result), indent=2, allow_nan=False) + "\n"
+        if args.report:
+            details = json.dumps(result, indent=2, allow_nan=False) + "\n"
+            args.report.parent.mkdir(parents=True, exist_ok=True)
+            args.report.write_text(details, encoding="utf-8")
         args.score.parent.mkdir(parents=True, exist_ok=True)
         args.score.write_text(text, encoding="utf-8")
     except (EvaluationError, OSError, ValueError, RuntimeError, ImportError, subprocess.SubprocessError) as error:

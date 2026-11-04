@@ -8,6 +8,7 @@ on:
       - Cargo.lock
       - crates/sdf-eval/**
       - verification/**
+      - dataset/Sphere/sdf.glsl
       - scripts/build_verification.py
       - scripts/smoke_verification.py
       - scripts/render_views.py
@@ -19,6 +20,7 @@ on:
       - Cargo.lock
       - crates/sdf-eval/**
       - verification/**
+      - dataset/Sphere/sdf.glsl
       - scripts/build_verification.py
       - scripts/smoke_verification.py
       - scripts/render_views.py
@@ -41,8 +43,10 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y pkg-config libwayland-dev libxkbcommon-dev libvulkan-dev libvulkan1 mesa-vulkan-drivers
       - name: Test sdf-eval without a GPU
         run: cargo test --locked -p sdf-eval
+      - name: Test verification contract
+        run: python3 -m unittest discover -s verification
       - name: Build upload directory
-        run: python3 scripts/build_verification.py
+        run: python3 scripts/build_verification.py --reference dataset/Sphere
       - name: Preserve executable permissions
         run: tar -C dist -cf dist/verification.tar verification
       - name: Upload verification directory

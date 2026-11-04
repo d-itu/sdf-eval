@@ -2,19 +2,96 @@
 
 import argparse
 import json
+import os
 from pathlib import Path
 import tempfile
 import unittest
 from unittest.mock import patch
 import sys
 
+sys.path.insert(0, str(Path(__file__).resolve().parent / "scripts"))
 import evaluate
 
 RESULTS = Path(__file__).resolve().parents[1] / "results"
 RESULTS.mkdir(exist_ok=True)
 
 
+def diagnostic_report(status="scored"):
+    return {"status": status, "total_score": 0.0 if status == "invalid_submission" else 100.0,
+            "items": [{"title": name, "max_points": points,
+                       "earned_points": 0.0 if status == "invalid_submission" else float(points)}
+                      for name, points in (("Volumetric IoU", 50), ("Surface F-score", 30),
+                                           ("Betti number similarity", 20))]}
+
+
 class PipelineTests(unittest.TestCase):
+    def test_production_schema_and_weighted_partial_score(self):
+        report = diagnostic_report()
+        for item, points in zip(report["items"], (25.0, 0.0, 10.0)):
+            item["earned_points"] = points
+        report["total_score"] = 35.0
+        result = evaluate.scoring_result(report)
+        self.assertEqual(set(result), {"Physical, Geometric, and Structural Capability", "total_score"})
+        items = result["Physical, Geometric, and Structural Capability"]["Geometric Form and Topological Structure"]
+        self.assertEqual([item["score"] for item in items], [50.0, 0.0, 50.0])
+        self.assertEqual([item["weight"] for item in items], [0.5, 0.3, 0.2])
+        self.assertTrue(all(set(item) == {"name", "score", "weight"} for item in items))
+        self.assertEqual(sum(item["score"] * item["weight"] for item in items), result["total_score"])
+
+    def test_default_score_and_optional_diagnostic_report(self):
+        with tempfile.TemporaryDirectory(dir=RESULTS) as directory:
+            root = Path(directory)
+            reference, output = root / "reference", root / "output"
+            reference.mkdir()
+            output.mkdir()
+            report = diagnostic_report("invalid_submission")
+            with patch.object(sys, "argv", ["evaluate.py", "--reference", str(reference),
+                                            "--output", str(output), "--report", str(root / "details.json")]), patch.object(
+                    evaluate, "score", return_value=report):
+                # The default is relative to the process working directory.
+                previous = Path.cwd()
+                try:
+                    os.chdir(root)
+                    self.assertEqual(evaluate.main(), 0)
+                finally:
+                    os.chdir(previous)
+            self.assertEqual(json.loads((root / "score.json").read_text()), evaluate.scoring_result(report))
+            self.assertEqual(json.loads((root / "details.json").read_text()), report)
+
+    def test_cli_rejects_files_as_inputs_and_unsafe_destinations(self):
+        with tempfile.TemporaryDirectory(dir=RESULTS) as directory:
+            root = Path(directory)
+            reference, output = root / "reference", root / "output"
+            reference.mkdir()
+            output.mkdir()
+            shader = output / "sdf.glsl"
+            shader.write_text("submission")
+            for ref, out, destination in ((shader, output, root / "score.json"),
+                                           (reference, shader, root / "score.json"),
+                                           (reference, output, root),
+                                           (reference, output, output / "score.json")):
+                with self.subTest(reference=ref, output=out, score=destination), patch.object(
+                        sys, "argv", ["evaluate.py", "--reference", str(ref), "--output", str(out),
+                                      "--score", str(destination)]):
+                    with self.assertRaises(SystemExit):
+                        evaluate.main()
+            self.assertEqual(shader.read_text(), "submission")
+
+    def test_evaluation_failure_does_not_publish_result_files(self):
+        with tempfile.TemporaryDirectory(dir=RESULTS) as directory:
+            root = Path(directory)
+            reference, output = root / "reference", root / "output"
+            reference.mkdir()
+            output.mkdir()
+            score_path, report_path = root / "score.json", root / "details.json"
+            with patch.object(sys, "argv", ["evaluate.py", "--reference", str(reference),
+                                            "--output", str(output), "--score", str(score_path),
+                                            "--report", str(report_path)]), patch.object(
+                    evaluate, "score", side_effect=evaluate.EvaluationError("reference is unusable")):
+                self.assertEqual(evaluate.main(), 1)
+            self.assertFalse(score_path.exists())
+            self.assertFalse(report_path.exists())
+
     def test_directory_cli_writes_only_json_with_default_bounds(self):
         with tempfile.TemporaryDirectory(dir=RESULTS) as directory:
             root = Path(directory)
@@ -25,7 +102,7 @@ class PipelineTests(unittest.TestCase):
             (reference / "sdf.glsl").write_text("reference shader")
             (output / "sdf.glsl").write_text("prediction shader")
             score_path = root / "reports/score.json"
-            report = {"status": "scored", "total_score": 100}
+            report = diagnostic_report()
             with patch.object(sys, "argv", ["evaluate.py", "--reference", str(reference),
                                             "--output", str(output), "--score", str(score_path)]), patch.object(
                     evaluate, "score", return_value=report) as scorer:
@@ -33,7 +110,7 @@ class PipelineTests(unittest.TestCase):
             scorer.assert_called_once_with(reference / "sdf.glsl", output / "sdf.glsl",
                                            Path(evaluate.__file__).parent / "bin/sdf-eval",
                                            (-2.0, -2.0, -2.0, 2.0, 2.0, 2.0))
-            self.assertEqual(json.loads(score_path.read_text()), report)
+            self.assertEqual(json.loads(score_path.read_text()), evaluate.scoring_result(report))
             self.assertEqual(list(score_path.parent.iterdir()), [score_path])
 
     def test_missing_prediction_shader_is_scored_as_invalid(self):
@@ -52,7 +129,7 @@ class PipelineTests(unittest.TestCase):
                                             "--evaluator", str(evaluator)]):
                 # A missing prediction should still produce an invalid-submission report.
                 self.assertEqual(evaluate.main(), 0)
-            self.assertEqual(json.loads(score_path.read_text())["status"], "invalid_submission")
+            self.assertEqual(json.loads(score_path.read_text())["total_score"], 0)
 
     def test_score_cannot_overwrite_shader(self):
         with tempfile.TemporaryDirectory(dir=RESULTS) as directory:
@@ -78,15 +155,16 @@ class PipelineTests(unittest.TestCase):
             output.mkdir()
             config = root / "camera.json"
             config.write_text('{"distance": 4}')
+            config.rename(reference / "image-config.json")
             with patch.object(sys, "argv", ["evaluate.py", "--reference", str(reference),
-                                            "--output", str(output), "--score", str(root / "score.json"),
-                                            "--image-config", str(config)]), patch.object(
-                    evaluate, "bootstrap"), patch.object(evaluate, "score", return_value={
-                        "status": "invalid_submission"}), patch.object(evaluate, "score_images") as images:
+                                            "--output", str(output), "--score", str(root / "score.json")]), patch.object(
+                    evaluate, "bootstrap"), patch.object(evaluate, "score", return_value=
+                        diagnostic_report("invalid_submission")), patch.object(evaluate, "score_images") as images:
                 self.assertEqual(evaluate.main(), 0)
             args, report = images.call_args.args
             self.assertEqual(args.gt, reference / "sdf.glsl")
             self.assertEqual(args.gen, output / "sdf.glsl")
+            self.assertEqual(args.image_config, reference / "image-config.json")
             self.assertEqual(report["status"], "invalid_submission")
 
     def test_render_configuration_is_shared_and_metrics_are_reported(self):
