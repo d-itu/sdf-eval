@@ -206,29 +206,6 @@ def score(gt, gen, binary, bounds):
     return report
 
 
-def markdown(report):
-    lines = ["# SDF Evaluation", "", f"Status: {report['status']}"]
-    if "reason" in report:
-        lines.append(f"Reason: {report['reason']}")
-    lines += ["", "| Metric | Value | Points | Maximum |", "| --- | ---: | ---: | ---: |"]
-    for item in report["items"]:
-        value = "N/A" if item["value"] is None else str(item["value"])
-        lines.append(f"| {item['title']} | {value} | {item['earned_points']} | {item['max_points']} |")
-    lines += ["", f"Total score: {report['total_score']} / 100", "",
-              "IoU and topology use occupied voxel centers; surface F-score uses independently sampled zero-isosurfaces.",
-              "Neither shader is aligned or rescaled. See settings in score.json for sampling parameters.", ""]
-    if "image_metrics" in report:
-        images = report["image_metrics"]
-        lines += ["## Image metrics (not included in total score)", "",
-                  f"Status: {images['status']}", ""]
-        if images["status"] == "ok":
-            lines += [f"SSIM: {images['metrics']['ssim_mean']}",
-                      f"LPIPS: {images['metrics']['lpips_mean']}", ""]
-        elif "reason" in images:
-            lines += [images["reason"], ""]
-    return "\n".join(lines)
-
-
 def helper(name):
     root = Path(__file__).resolve().parent
     path = root / f"{name}.py"
@@ -282,12 +259,11 @@ def score_images(args, report):
 def main():
     package = Path(__file__).resolve().parent
     parser = argparse.ArgumentParser(description="Score an aligned generated GLSL SDF against a reference.")
-    parser.add_argument("--gt", type=Path, required=True, help="Ground-truth GLSL SDF file from verification references.")
-    parser.add_argument("--gen", type=Path, required=True, help="Generated GLSL SDF file from task outputs.")
-    parser.add_argument("--json", type=Path, default=Path("score.json"), help="JSON score output path (default: score.json).")
-    parser.add_argument("--md", type=Path, default=Path("report.md"), help="Markdown report output path (default: report.md).")
-    parser.add_argument("--bounds", type=bounds_arg, required=True,
-                        help="Task-specific xmin,ymin,zmin,xmax,ymax,zmax in shader coordinates.")
+    parser.add_argument("--reference", type=Path, required=True, help="Reference directory containing sdf.glsl.")
+    parser.add_argument("--output", type=Path, required=True, help="Prediction directory containing sdf.glsl.")
+    parser.add_argument("--score", type=Path, required=True, help="JSON score output file.")
+    parser.add_argument("--bounds", type=bounds_arg, default=(-2.0, -2.0, -2.0, 2.0, 2.0, 2.0),
+                        help="Optional xmin,ymin,zmin,xmax,ymax,zmax (default: -2,-2,-2,2,2,2).")
     parser.add_argument("--evaluator", type=Path, default=package / "bin/sdf-eval",
                         help="Path to sdf-eval (default: bin/sdf-eval beside this entry point).")
     parser.add_argument("--image-config", type=Path, help="Fixed reference-derived image camera configuration JSON; enables SSIM/LPIPS.")
@@ -295,19 +271,25 @@ def main():
     parser.add_argument("--artifacts", type=Path, default=Path("image-artifacts"), help="New directory for rendered evaluation images.")
     parser.add_argument("--weights", type=Path, default=package / "weights", help="Torch weight cache containing checkpoints/.")
     args = parser.parse_args()
+    if not args.reference.is_dir():
+        parser.error("--reference must be a directory")
+    if not args.output.is_dir():
+        parser.error("--output must be a directory")
+    gt = args.reference / "sdf.glsl"
+    gen = args.output / "sdf.glsl"
+    if args.score.resolve() in (gt.resolve(), gen.resolve()):
+        parser.error("--score must not overwrite a shader")
     if args.image_config:
         bootstrap()
-    if args.json.resolve() == args.md.resolve():
-        parser.error("--json and --md must be different paths")
     try:
-        result = score(args.gt, args.gen, args.evaluator, args.bounds)
+        result = score(gt, gen, args.evaluator, args.bounds)
         if args.image_config:
+            args.gt = gt
+            args.gen = gen
             score_images(args, result)
         text = json.dumps(result, indent=2, allow_nan=False) + "\n"
-        for path in (args.json, args.md):
-            path.parent.mkdir(parents=True, exist_ok=True)
-        args.json.write_text(text, encoding="utf-8")
-        args.md.write_text(markdown(result), encoding="utf-8")
+        args.score.parent.mkdir(parents=True, exist_ok=True)
+        args.score.write_text(text, encoding="utf-8")
     except (EvaluationError, OSError, ValueError, RuntimeError, ImportError, subprocess.SubprocessError) as error:
         print(f"evaluation error: {error}", file=sys.stderr)
         return 1

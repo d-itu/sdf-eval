@@ -1,6 +1,6 @@
 # SDF Reconstruction Scoring Rubric
 
-This rubric applies to one task with a ground-truth signed GLSL SDF and an aligned generated GLSL SDF. The verifier receives only `--gt`, `--gen`, and task-specific options; it cannot access the reconstruction images in `input/`. Scores measure geometry in the reference coordinate frame, not visual appearance or the agent's process. The four capability areas in the verifier guide are represented by observable geometry and executable-output evidence; input understanding and tool use cannot be scored independently from these files.
+This rubric applies to one task with a ground-truth signed GLSL SDF and an aligned generated GLSL SDF. The verifier receives `--reference` and `--output` directories (each containing `sdf.glsl`) and writes JSON to `--score`; it cannot access the reconstruction images in `input/`. Scores measure geometry in the reference coordinate frame, not visual appearance or the agent's process. The four capability areas in the verifier guide are represented by observable geometry and executable-output evidence; input understanding and tool use cannot be scored independently from these files.
 
 ## Scoring
 
@@ -14,9 +14,9 @@ Total score is the sum of item scores, in `[0, 100]`, without rounding. IoU uses
 
 ## Invalid results and failures
 
-- Missing generated file, prediction compile failure, non-finite prediction values, or occupied prediction boundary in any metric: invalid submission; all three items score 0 and the script writes both reports.
+- Missing generated file, prediction compile failure, non-finite prediction values, or occupied prediction boundary in any metric: invalid submission; all three items score 0 and the script writes a JSON report.
 - A prediction with valid sampled volume but no extractable zero surface receives its IoU points and 0 surface points (`partial`). An empty prediction topology grid receives 0 topology points and retains other valid metric points (`partial`). An empty/unsigned prediction is never treated as a perfect match.
 - Missing/invalid reference, empty or boundary-occupied reference (including its 128-cell topology grid), missing evaluator, GPU/driver failure, timeout, malformed evaluator output, or any unclassified evaluation error: evaluation failure, not a zero-scored submission. The script exits nonzero and does not claim a score. Correct the task materials or environment and rerun.
-- Reports are JSON (top-level numeric `total_score`, per-item `value` and `earned_points`, `settings` and `status`) and Markdown (same item scores and total). Success, including a scored invalid submission, exits 0 and writes both files to `--json` and `--md` (defaults `score.json`, `report.md`).
+- Reports are JSON (top-level numeric `total_score`, per-item `value` and `earned_points`, `settings` and `status`). Success, including a scored invalid submission, exits 0 and writes the file specified by the required `--score` option.
 
-The `--bounds` value and tool version must be pinned for a published task. Compare results only within the same reference and settings. Review `score.json` and `report.md` together after every scoring-policy change.
+The default `--bounds` value is `-2,-2,-2,2,2,2`. Bounds and tool version must be pinned for a published task. Compare results only within the same reference and settings. Review the JSON score after every scoring-policy change.

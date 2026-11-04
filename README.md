@@ -36,7 +36,7 @@ Regenerate the gallery after rendering with `scripts/validate_dataset.py`.
 
 For the combined geometry and image entry point, locked Python 3.11 development
 environment, and Ubuntu 24.04 production upload builder, see
-[verification/README.md](verification/README.md). Production bundles contain
+[verification/scoring.md](verification/scoring.md). Production bundles contain
 both Rust tools, CPU Python wheels, and AlexNet weights; SSIM/LPIPS are reported
 separately from the existing geometry score.
 

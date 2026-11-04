@@ -25,13 +25,19 @@ def main():
         config.write_text(json.dumps({"distance": 4, "azimuths": 1, "elevations": [0],
                                      "top": False, "bottom": False, "width": 64,
                                      "height": 64, "antialiasing": 1}))
+        reference = work / "reference"
+        reference.mkdir()
+        (reference / "sdf.glsl").write_bytes((fixtures / "sphere.glsl").read_bytes())
         reports = {}
         for case, shader in (("identical", "sphere.glsl"), ("changed", "small_sphere.glsl"),
                              ("invalid", "invalid.glsl")):
-            command = [sys.executable, str(args.entry.resolve()), "--gt", str(fixtures / "sphere.glsl"),
-                       "--gen", str(fixtures / shader), "--bounds=-2,-2,-2,2,2,2",
-                       "--image-config", str(config), "--artifacts", str(work / case),
-                       "--json", str(work / f"{case}.json"), "--md", str(work / f"{case}.md")]
+            output = work / case / "output"
+            output.mkdir(parents=True)
+            (output / "sdf.glsl").write_bytes((fixtures / shader).read_bytes())
+            command = [sys.executable, str(args.entry.resolve()), "--reference", str(reference),
+                       "--output", str(output),
+                       "--image-config", str(config), "--artifacts", str(work / case / "images"),
+                       "--score", str(work / f"{case}.json")]
             for key in ("evaluator", "renderer", "weights"):
                 value = getattr(args, key)
                 if value:
