@@ -1,10 +1,9 @@
 # Surface metrics
 
 The `surface` command evaluates Chamfer Distance and F-score together from the
-same two sampled surfaces. Neither shader is transformed, normalized, or hashed.
+same two sampled surfaces.
 
 ```sh
-cargo build --locked -p sdf-eval
 ./target/debug/sdf-eval surface \
   --reference dataset/Sphere/sdf.glsl \
   --prediction predictions/Sphere/sdf.glsl \
@@ -16,15 +15,8 @@ cargo build --locked -p sdf-eval
   --output results/Sphere-surface.json
 ```
 
-Bounds and thresholds are required. Thresholds are positive finite distances
-in the input coordinate units; no scale normalization is applied. CD values
-from differently scaled objects therefore need an explicit benchmark aggregation
-protocol before they can be compared or averaged across objects.
-
-Defaults are 256 cells per axis, 100,000 points per surface, seed 42, and at most
-1,048,576 lattice positions per GPU batch. Lower the resolution and point count
-for a quick check. Non-cubic boxes are supported. Output goes to stdout when
-`--output` is omitted; output parent directories are created when needed.
+`--thresholds` is required and accepts positive finite distances.
+Surface-specific defaults are 100,000 points per surface and seed 42.
 
 ## Extraction and sampling
 
@@ -80,18 +72,15 @@ threshold, precision, recall, and F-score. The directed HD95 values are the
 interpolation at `0.95 * (count - 1)`. The squared variant has squared
 coordinate units and is not the square of `chamfer_l2_mean`.
 
-These are point-cloud estimates of geometric surface metrics. Independently
-sampled identical shapes normally have positive CD and can have F-score below
+Independently sampled identical shapes normally have positive CD and can have F-score below
 one at small thresholds. Increase point count to reduce this sampling floor.
 Increase grid resolution independently to reduce geometric discretization error.
 Neither refinement can recover a surface absent from the signed field.
 
 ## Failures and boundaries
 
-A successful report has `status: "ok"`, mesh triangle counts and areas,
-adapter information, lattice size, parameters, metrics, and total wall time.
-Failures exit nonzero and leave `metrics: null`, with `stage` identifying the
-input and operation when available. In particular:
+Reports add mesh triangle counts and areas, lattice size, meshing and sampling
+parameters, and surface metrics. Surface-specific failures include:
 
 - `no_surface_extracted`: no nondegenerate triangles were found for one input.
   This can mean an empty field, geometry outside the box, a box entirely inside
@@ -99,10 +88,7 @@ input and operation when available. In particular:
   surfaces are still a failure, not a perfect score.
 - `non_finite_values`: a sampled shader output was NaN or infinity. The command
   stops on the first affected batch rather than silently discarding cells.
-- `reference_compile_failed` / `prediction_compile_failed`: the indicated
-  shader could not compile.
-- `invalid_settings`: invalid bounds/resolution/batch size, no points, or a
-  nonpositive/nonfinite threshold.
+- `invalid_settings`: no points or a nonpositive/nonfinite threshold.
 
 For each mesh, `boundary_occupied` is true if any box-face lattice node has
 value <= 0. The result also includes the OR of both flags. This is a truncation
@@ -114,19 +100,15 @@ A field completely negative throughout the box still has no extractable surface.
 Unsigned shaders such as the dataset's Triangle do not provide sign-changing
 zero crossings. The implementation deliberately does not add thickness or
 change the isovalue. Even for a renderable distance estimator, its sampled zero
-surface may differ from its ray-marched appearance. Discontinuities and poorly
-resolved features also limit fidelity. No in-process timeout is provided;
-batch runners should impose subprocess deadlines.
+surface may differ from its ray-marched appearance.
 
 ## Validation
 
-Run `cargo test --locked -- --include-ignored` with a compute adapter. Tests
-cover KD-tree distances against brute force, exact metric definitions and
+Tests cover KD-tree distances against brute force, exact metric definitions and
 threshold inclusion, area-weighted sampling and centroid statistics, planar
 mesh area without caps, sphere mesh convergence, analytic concentric spheres,
 independent self-sampling, batch reproducibility, clipped boundaries, invalid
-parameters, NaN/Inf, missing surfaces, and compilation failures. IoU regression
-tests run alongside them.
+parameters, NaN/Inf, missing surfaces, and compilation failures.
 
 Development-adapter checks with a unit sphere and concentric radius-0.5 sphere
 used 10,000 points each. The analytic surface CD is 0.5:

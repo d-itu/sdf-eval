@@ -39,7 +39,6 @@ Job-level `self_check` options replace the default option object.
 The standalone command remains available:
 
 ```sh
-cargo build --locked -p sdf-eval
 ./target/debug/sdf-eval self-check \
   --shader dataset/Sphere/sdf.glsl \
   --bounds=-2,-2,-2,2,2,2 \
@@ -48,7 +47,7 @@ cargo build --locked -p sdf-eval
 ```
 
 The bounds must contain the whole object, with positive field values at the
-six box faces. The evaluator does not fit or normalize the shader. `--probes`
+six box faces. `--probes`
 is the number of cell-center field probes per axis (default 16). `--rays` is
 the number of rays per side on each box face (default 32); rays travel along
 all six axis directions at pixel centers. `--oracle-steps` is the number of
@@ -56,8 +55,7 @@ uniform intervals per ray (default 512). `--max-steps` caps tracing iterations
 (default 256). `--epsilon` is the value-space hit and root tolerance (default:
 longest box side / 10000). A nonzero exit and a JSON status other than `ok`
 indicate invalid samples or no observed first crossings. Reports retain
-partial diagnostic counts in these cases. There is no in-process timeout for
-untrusted shaders; run the evaluator under a subprocess deadline.
+partial diagnostic counts in these cases.
 
 ## Field probes
 
