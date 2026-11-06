@@ -2,10 +2,10 @@
 
 Run commands from the repository root. `flake.lock` pins Nixpkgs and the
 `sdf-view` source. The renderer's upstream `Cargo.lock` pins Rust dependencies.
-The shell provides the pinned `sdf-view` command, Rust, Cargo, and the Vulkan
-loader. Vulkan uses the pinned Nix Mesa ICDs instead of the host's Mesa
-libraries; the default excludes the Lavapipe software ICD. The host supplies
-the GPU device and kernel driver.
+The shell provides the pinned `sdf-view` command and Vulkan runtime libraries.
+Vulkan uses the pinned Nix Mesa ICDs instead of the host's Mesa libraries; the
+default excludes the Lavapipe software ICD. The host supplies the GPU device
+and kernel driver.
 
 ```sh
 nix develop path:.
@@ -20,17 +20,11 @@ There is no vendored renderer checkout. Multi-view rendering uses the shell's
 renderer by default. The dataset preparation scripts require a separately built
 `target/debug/sdf-view` executable at the dataset renderer revision listed below.
 
-The build uses the default Cargo dev profile and writes build outputs to
-`target/` inside this repository. The shell preserves the user's `CARGO_HOME`
-and `XDG_CACHE_HOME` settings. Nix manages its own store. `.envrc` supports
-optional direnv use.
-
 ## Python dependencies
 
 Dataset preparation needs Python with Pillow. Image evaluation and verification
 share the locked Python 3.11 environment in `verification/.venv`, including
-NumPy, Pillow, scikit-image, CPU PyTorch, torchvision, and LPIPS. With uv and
-Python 3.11 available:
+NumPy, Pillow, scikit-image, CPU PyTorch, torchvision, and LPIPS:
 
 ```sh
 uv sync --project verification --locked

@@ -60,20 +60,11 @@
         in
         {
           default = pkgs.mkShell {
-            packages = with pkgs; [
+            packages = [
               sdfViewPackage
               sdfViewSoftware
-              cargo
-              rustc
-              rustfmt
-              clippy
-              rust-analyzer
-              pkg-config
-              git
-              curl
             ];
 
-            RUST_SRC_PATH = "${pkgs.rustPlatform.rustLibSrc}";
             SDF_VIEW_SOURCE = "${sdf-view}";
 
             shellHook = ''
