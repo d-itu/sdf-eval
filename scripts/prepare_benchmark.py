@@ -14,7 +14,7 @@ from render_views import positive_float
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def prepare(reference, output, distance, renderer):
+def prepare(reference, output, distance, renderer, title="SDF Reconstruction"):
     if not reference.is_file():
         raise ValueError(f"reference shader is missing: {reference}")
     distance = positive_float(str(distance))
@@ -39,8 +39,15 @@ def prepare(reference, output, distance, renderer):
         subprocess.run(command, check=True)
         manifest_path = task / "run/input/views.json"
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["shader"] = "../../verification/reference/sdf.glsl"
+        manifest.pop("shader", None)
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        prompt = (ROOT / "benchmark_prompt.md").read_text(encoding="utf-8").format(
+            title=title,
+            input="Reference views: `input/*.png`. Camera settings: `input/views.json`.",
+            tools=f"Renderer: `{renderer}`. Use the camera settings in `input/views.json`.",
+            output="Write the completed shader to `output/sdf.glsl`.",
+        )
+        (task / "prompt.md").write_text(prompt, encoding="utf-8")
         task.rename(output)
 
 
@@ -51,9 +58,10 @@ def main():
     parser.add_argument("--distance", type=positive_float, required=True,
                         help="Reference-derived orbit camera distance in shader units")
     parser.add_argument("--renderer", default="sdf-view", help="Renderer executable (CPU: sdf-view-software)")
+    parser.add_argument("--title", default="SDF Reconstruction", help="Task title (default: SDF Reconstruction)")
     args = parser.parse_args()
     try:
-        prepare(args.reference, args.output, args.distance, args.renderer)
+        prepare(args.reference, args.output, args.distance, args.renderer, args.title)
     except (OSError, ValueError, subprocess.CalledProcessError) as error:
         parser.exit(1, f"error: {error}\n")
     print(f"Prepared task at {args.output}")
