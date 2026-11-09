@@ -13,7 +13,8 @@ Use +Y as up, center the object's bounding box at the origin, and choose a scale
 - Work autonomously; no interactive input or human feedback is available.
 - Define `float sdf(vec3 p)` with negative values inside and positive values outside. The field must be suitable for sphere tracing.
 - Write self-contained, Naga-compatible GLSL: no `#version`, `main`, uniforms, textures, resource bindings, or identifiers starting with `sdf_view_`.
-- Use the provided software, where applicable, to render and refine the shader against the references. Do not request clarification or rely on manual review.
+- Use the renderer listed under `Tools` to generate images of your shader with the camera settings in `input/views.json`. Compare the renders with the corresponding reference images in `input/*.png` and refine the shader accordingly. Do not request clarification or rely on human review.
+- Only access files explicitly listed under `Inputs`, `Outputs` or `Tools`; do not read any other files, directories, source code, metadata, or hidden files.
 - Deliver plain GLSL at the designated output path, without Markdown fences.
 
 ## Inputs
