@@ -80,6 +80,15 @@
                 ]
               }''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
               VK_DRIVER_FILES=
+              for icd in \
+                /run/opengl-driver/share/vulkan/icd.d/nvidia_icd.json \
+                /usr/share/vulkan/icd.d/nvidia_icd.json \
+                /etc/vulkan/icd.d/nvidia_icd.json; do
+                if [ -r "$icd" ]; then
+                  VK_DRIVER_FILES="$icd"
+                  break
+                fi
+              done
               for icd in ${mesaIcdDir}/*_icd.*.json; do
                 case "$icd" in
                   */lvp_icd.*) continue ;;

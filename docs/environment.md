@@ -3,9 +3,6 @@
 Run commands from the repository root. `flake.lock` pins Nixpkgs and the
 `sdf-view` source. The renderer's upstream `Cargo.lock` pins Rust dependencies.
 The shell provides the pinned `sdf-view` command and Vulkan runtime libraries.
-Vulkan uses the pinned Nix Mesa ICDs instead of the host's Mesa libraries; the
-default excludes the Lavapipe software ICD. The host supplies the GPU device
-and kernel driver.
 
 ```sh
 nix develop path:.
