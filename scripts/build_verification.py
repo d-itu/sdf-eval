@@ -29,7 +29,8 @@ def prepare_materials(staging, reference, image_config=None):
     scripts.mkdir(parents=True)
     (staging / "reference").mkdir()
     (staging / "rubric").mkdir()
-    shutil.copy2(reference / "sdf.glsl", staging / "reference/sdf.glsl")
+    shader = reference / "sdf.glsl" if reference.is_dir() else reference
+    shutil.copy2(shader, staging / "reference/sdf.glsl")
     if image_config:
         shutil.copy2(image_config, staging / "reference/image-config.json")
     shutil.copy2(ROOT / "verification/scoring.md", staging / "rubric/scoring.md")
