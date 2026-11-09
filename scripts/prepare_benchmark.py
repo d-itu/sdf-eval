@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Prepare one local reconstruction task with multi-view inputs."""
 
 import argparse

@@ -1,14 +1,16 @@
 """Tests for single-task benchmark packaging."""
 
 import json
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from prepare_benchmark import prepare
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "scripts"))
 
-ROOT = Path(__file__).resolve().parents[1]
+from prepare_benchmark import prepare
 
 
 class PrepareBenchmarkTests(unittest.TestCase):

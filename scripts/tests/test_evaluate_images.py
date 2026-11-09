@@ -4,16 +4,20 @@ import argparse
 import copy
 import json
 import os
-from pathlib import Path
+import sys
 import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import patch
+
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "scripts"))
 
 from evaluate_images import evaluate, load_manifest, main, matched_views
 
 
 def temporary_directory():
-    root = Path(__file__).resolve().parents[1] / "results/.cache"
+    root = ROOT / "results/.cache"
     root.mkdir(parents=True, exist_ok=True)
     return tempfile.TemporaryDirectory(dir=root)
 
