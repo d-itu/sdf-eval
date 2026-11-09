@@ -26,14 +26,26 @@ def manifest():
     return {
         "schema_version": 1,
         "render": {
-            "width": 64, "height": 64, "antialiasing": 4,
-            "background": "transparent", "light_direction": [-0.5, 0.8, 1],
-            "light_color": "white", "object_color": "rgb(137,196,237)",
-            "light_intensity": 0.85, "ambient": 0.15,
+            "width": 64,
+            "height": 64,
+            "antialiasing": 4,
+            "background": "transparent",
+            "light_direction": [-0.5, 0.8, 1],
+            "light_color": "white",
+            "object_color": "rgb(137,196,237)",
+            "light_intensity": 0.85,
+            "ambient": 0.15,
         },
-        "views": [{"image": name, "camera_position": [0, 0, 3],
-                   "camera_target": [0, 0, 0], "camera_up": [0, 1, 0], "fov": 45}
-                  for name in ("front.png", "back.png")],
+        "views": [
+            {
+                "image": name,
+                "camera_position": [0, 0, 3],
+                "camera_target": [0, 0, 0],
+                "camera_up": [0, 1, 0],
+                "fov": 45,
+            }
+            for name in ("front.png", "back.png")
+        ],
     }
 
 
@@ -41,17 +53,35 @@ class ManifestTests(unittest.TestCase):
     def test_report_publication_and_failure(self):
         with temporary_directory() as temp:
             output = Path(temp) / "scores.json"
-            command = ["evaluate_images.py", "--reference", "ref.json", "--prediction", "pred.json",
-                       "--output", str(output)]
-            with patch("sys.argv", command), patch("evaluate_images.evaluate", side_effect=ValueError("missing view")):
+            command = [
+                "evaluate_images.py",
+                "--reference",
+                "ref.json",
+                "--prediction",
+                "pred.json",
+                "--output",
+                str(output),
+            ]
+            with (
+                patch("sys.argv", command),
+                patch(
+                    "evaluate_images.evaluate", side_effect=ValueError("missing view")
+                ),
+            ):
                 self.assertEqual(main(), 1)
             self.assertFalse(output.exists())
             self.assertEqual(list(Path(temp).iterdir()), [])
             report = {"metrics": {"ssim_mean": 1.0, "lpips_mean": 0.0}}
-            with patch("sys.argv", command), patch("evaluate_images.evaluate", return_value=report):
+            with (
+                patch("sys.argv", command),
+                patch("evaluate_images.evaluate", return_value=report),
+            ):
                 self.assertEqual(main(), 0)
             self.assertEqual(json.loads(output.read_text()), report)
-            with patch("sys.argv", command), patch("evaluate_images.evaluate") as compute:
+            with (
+                patch("sys.argv", command),
+                patch("evaluate_images.evaluate") as compute,
+            ):
                 self.assertEqual(main(), 1)
                 compute.assert_not_called()
             self.assertEqual(json.loads(output.read_text()), report)
@@ -102,8 +132,10 @@ class ManifestTests(unittest.TestCase):
 
 
 class MetricTests(unittest.TestCase):
-    @unittest.skipUnless(os.environ.get("RUN_LPIPS_TESTS") == "1",
-                         "requires metric dependencies and pretrained weights")
+    @unittest.skipUnless(
+        os.environ.get("RUN_LPIPS_TESTS") == "1",
+        "requires metric dependencies and pretrained weights",
+    )
     def test_identity_transparent_rgb_and_changed_geometry(self):
         from PIL import Image, ImageDraw
 
@@ -115,11 +147,19 @@ class MetricTests(unittest.TestCase):
                 (directory / "views.json").write_text(json.dumps(manifest()))
                 for view in ("front.png", "back.png"):
                     # Different hidden RGB must not affect the score.
-                    image = Image.new("RGBA", (64, 64), (255 if name == "pred" else 0, 0, 0, 0))
-                    ImageDraw.Draw(image).ellipse((12, 12, 52, 52), fill=(137, 196, 237, 255))
+                    image = Image.new(
+                        "RGBA", (64, 64), (255 if name == "pred" else 0, 0, 0, 0)
+                    )
+                    ImageDraw.Draw(image).ellipse(
+                        (12, 12, 52, 52), fill=(137, 196, 237, 255)
+                    )
                     image.save(directory / view)
-            args = argparse.Namespace(reference=root / "ref/views.json", prediction=root / "pred/views.json",
-                                      cache_dir=Path("results/.cache/torch"), device="cpu")
+            args = argparse.Namespace(
+                reference=root / "ref/views.json",
+                prediction=root / "pred/views.json",
+                cache_dir=Path("results/.cache/torch"),
+                device="cpu",
+            )
             identity = evaluate(args)
             self.assertAlmostEqual(identity["metrics"]["ssim_mean"], 1.0, places=6)
             self.assertAlmostEqual(identity["metrics"]["lpips_mean"], 0.0, places=6)

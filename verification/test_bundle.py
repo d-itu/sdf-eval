@@ -9,7 +9,9 @@ import unittest
 
 
 ROOT = Path(__file__).resolve().parents[1]
-spec = importlib.util.spec_from_file_location("build_verification", ROOT / "scripts/build_verification.py")
+spec = importlib.util.spec_from_file_location(
+    "build_verification", ROOT / "scripts/build_verification.py"
+)
 builder = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(builder)
 
@@ -27,16 +29,32 @@ class BundleTests(unittest.TestCase):
             config.write_text('{"distance": 4}')
             staging = root / "verification"
             scripts = builder.prepare_materials(staging, reference, config)
-            self.assertEqual(list(staging.rglob("evaluate.py")), [scripts / "evaluate.py"])
-            self.assertEqual({path.name for path in staging.iterdir()}, {"reference", "rubric", "scripts"})
-            self.assertEqual({path.name for path in (staging / "reference").iterdir()},
-                             {"sdf.glsl", "image-config.json"})
-            self.assertEqual((staging / "reference/sdf.glsl").read_text(), "reference shader")
-            self.assertEqual((staging / "rubric/scoring.md").read_bytes(),
-                             (ROOT / "verification/scoring.md").read_bytes())
+            self.assertEqual(
+                list(staging.rglob("evaluate.py")), [scripts / "evaluate.py"]
+            )
+            self.assertEqual(
+                {path.name for path in staging.iterdir()},
+                {"reference", "rubric", "scripts"},
+            )
+            self.assertEqual(
+                {path.name for path in (staging / "reference").iterdir()},
+                {"sdf.glsl", "image-config.json"},
+            )
+            self.assertEqual(
+                (staging / "reference/sdf.glsl").read_text(), "reference shader"
+            )
+            self.assertEqual(
+                (staging / "rubric/scoring.md").read_bytes(),
+                (ROOT / "verification/scoring.md").read_bytes(),
+            )
             self.assertFalse((scripts / "pyproject.toml").exists())
-            result = subprocess.run([sys.executable, str(scripts / "evaluate.py"), "--help"],
-                                    capture_output=True, text=True, check=True, cwd=root)
+            result = subprocess.run(
+                [sys.executable, str(scripts / "evaluate.py"), "--help"],
+                capture_output=True,
+                text=True,
+                check=True,
+                cwd=root,
+            )
             self.assertIn("--reference", result.stdout)
 
 

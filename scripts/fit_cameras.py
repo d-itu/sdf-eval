@@ -4,7 +4,6 @@
 import argparse
 import json
 import math
-from pathlib import Path
 
 from render_dataset import ROOT, render
 
@@ -15,7 +14,11 @@ def normalized(vector):
 
 
 def cross(a, b):
-    return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]
+    return [
+        a[1] * b[2] - a[2] * b[1],
+        a[2] * b[0] - a[0] * b[2],
+        a[0] * b[1] - a[1] * b[0],
+    ]
 
 
 def fit(folder):
@@ -42,12 +45,21 @@ def fit(folder):
             forward = normalized([-v for v in offset])
             right = normalized(cross(forward, settings["camera_up"]))
             up = cross(right, forward)
-            pixel_scale = 2 * distance * math.tan(math.radians(settings["fov"] / 2)) / height
-            shift = [pixel_scale * ((center[0] - width / 2) * r - (center[1] - height / 2) * u)
-                     for r, u in zip(right, up)]
+            pixel_scale = (
+                2 * distance * math.tan(math.radians(settings["fov"] / 2)) / height
+            )
+            shift = [
+                pixel_scale
+                * ((center[0] - width / 2) * r - (center[1] - height / 2) * u)
+                for r, u in zip(right, up)
+            ]
         settings["camera_target"] = [round(t + s, 6) for t, s in zip(target, shift)]
-        settings["camera_position"] = [round(t + s + o * factor, 6) for t, s, o in zip(target, shift, offset)]
-        metadata["framing"] = "Camera fitted to foreground bounds; shader coordinates unchanged."
+        settings["camera_position"] = [
+            round(t + s + o * factor, 6) for t, s, o in zip(target, shift, offset)
+        ]
+        metadata["framing"] = (
+            "Camera fitted to foreground bounds; shader coordinates unchanged."
+        )
         path.write_text(json.dumps(metadata, indent=2) + "\n")
         render(folder, 90)
 
@@ -56,7 +68,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("models", nargs="*")
     args = parser.parse_args()
-    folders = [ROOT / "dataset" / name for name in args.models] if args.models else sorted((ROOT / "dataset").iterdir())
+    folders = (
+        [ROOT / "dataset" / name for name in args.models]
+        if args.models
+        else sorted((ROOT / "dataset").iterdir())
+    )
     for folder in folders:
         if (folder / "metadata.json").exists():
             fit(folder)

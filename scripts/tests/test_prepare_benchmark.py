@@ -34,34 +34,56 @@ class PrepareBenchmarkTests(unittest.TestCase):
         input_dir = Path(command[command.index("--output") + 1])
         input_dir.mkdir()
         (input_dir / "az000_el+00.png").touch()
-        (input_dir / "views.json").write_text(json.dumps({"shader": command[2], "views": []}))
+        (input_dir / "views.json").write_text(
+            json.dumps({"shader": command[2], "views": []})
+        )
 
     def test_creates_isolated_task_with_matching_cameras(self):
         with patch("prepare_benchmark.subprocess.run", side_effect=self.fake_render):
             prepare(self.reference, self.output, 4, "sdf-view")
-        self.assertEqual({p.name for p in self.output.iterdir()}, {"run", "verification", "prompt.md"})
-        self.assertEqual({p.name for p in (self.output / "run").iterdir()}, {"input", "output"})
+        self.assertEqual(
+            {p.name for p in self.output.iterdir()},
+            {"run", "verification", "prompt.md"},
+        )
+        self.assertEqual(
+            {p.name for p in (self.output / "run").iterdir()}, {"input", "output"}
+        )
         self.assertEqual(list((self.output / "run/output").iterdir()), [])
-        self.assertEqual({p.name for p in (self.output / "run/input").iterdir()},
-                         {"views.json", "az000_el+00.png"})
-        self.assertNotIn("shader", json.loads((self.output / "run/input/views.json").read_text()))
+        self.assertEqual(
+            {p.name for p in (self.output / "run/input").iterdir()},
+            {"views.json", "az000_el+00.png"},
+        )
+        self.assertNotIn(
+            "shader", json.loads((self.output / "run/input/views.json").read_text())
+        )
         prompt = (self.output / "prompt.md").read_text()
         self.assertIn("# Task Instruction: SDF Reconstruction", prompt)
         self.assertNotIn("Sphere", prompt)
         self.assertIn("Renderer: `sdf-view`", prompt)
         self.assertNotIn("{title}", prompt)
         self.assertNotIn("verification/", prompt)
-        self.assertEqual((self.output / "verification/reference/sdf.glsl").read_text(), "reference shader")
+        self.assertEqual(
+            (self.output / "verification/reference/sdf.glsl").read_text(),
+            "reference shader",
+        )
         self.assertFalse(list(self.output.rglob("metadata.json")))
-        self.assertEqual(json.loads((self.output / "verification/reference/image-config.json").read_text()),
-                         {"distance": 4.0})
+        self.assertEqual(
+            json.loads(
+                (self.output / "verification/reference/image-config.json").read_text()
+            ),
+            {"distance": 4.0},
+        )
         self.assertTrue((self.output / "verification/scripts/evaluate.py").is_file())
-        self.assertTrue((self.output / "verification/scripts/render_views.py").is_file())
+        self.assertTrue(
+            (self.output / "verification/scripts/render_views.py").is_file()
+        )
 
     def test_explicit_title(self):
         with patch("prepare_benchmark.subprocess.run", side_effect=self.fake_render):
             prepare(self.reference, self.output, 4, "sdf-view", "Custom Object")
-        self.assertIn("# Task Instruction: Custom Object", (self.output / "prompt.md").read_text())
+        self.assertIn(
+            "# Task Instruction: Custom Object", (self.output / "prompt.md").read_text()
+        )
 
     def test_rejects_missing_reference_and_existing_output(self):
         self.reference.unlink()
@@ -74,8 +96,13 @@ class PrepareBenchmarkTests(unittest.TestCase):
             prepare(self.reference, self.output, 4, "sdf-view")
 
     def test_failure_does_not_publish_partial_task(self):
-        with (patch("prepare_benchmark.subprocess.run", side_effect=OSError("renderer failed")),
-              self.assertRaisesRegex(OSError, "renderer failed")):
+        with (
+            patch(
+                "prepare_benchmark.subprocess.run",
+                side_effect=OSError("renderer failed"),
+            ),
+            self.assertRaisesRegex(OSError, "renderer failed"),
+        ):
             prepare(self.reference, self.output, 4, "sdf-view")
         self.assertFalse(self.output.exists())
 

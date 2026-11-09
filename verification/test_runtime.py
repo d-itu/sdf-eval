@@ -1,9 +1,9 @@
 """Verify bundled dependency bootstrap and cache reuse."""
 
-from pathlib import Path
-import tempfile
 import sys
+import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "scripts"))
@@ -15,7 +15,9 @@ RESULTS.mkdir(exist_ok=True)
 
 class RuntimeTests(unittest.TestCase):
     def test_install_is_offline_and_reused(self):
-        with tempfile.TemporaryDirectory(dir=Path(__file__).resolve().parents[1] / "results") as directory:
+        with tempfile.TemporaryDirectory(
+            dir=Path(__file__).resolve().parents[1] / "results"
+        ) as directory:
             root = Path(directory)
             (root / "wheels").mkdir()
             (root / "requirements.lock").write_text("# Empty test environment\n")
@@ -23,10 +25,14 @@ class RuntimeTests(unittest.TestCase):
             def create(path):
                 path.mkdir(parents=True)
 
-            with patch.object(runtime, "__file__", str(root / "runtime.py")), patch.object(
-                    runtime.sys, "version_info", (3, 11, 16)), patch.object(
-                    runtime.os, "environ", {}), patch.object(runtime.venv, "EnvBuilder") as builder, patch.object(
-                    runtime.subprocess, "run") as install, patch.object(runtime.os, "execve") as execute:
+            with (
+                patch.object(runtime, "__file__", str(root / "runtime.py")),
+                patch.object(runtime.sys, "version_info", (3, 11, 16)),
+                patch.object(runtime.os, "environ", {}),
+                patch.object(runtime.venv, "EnvBuilder") as builder,
+                patch.object(runtime.subprocess, "run") as install,
+                patch.object(runtime.os, "execve") as execute,
+            ):
                 builder.return_value.create.side_effect = create
                 runtime.bootstrap()
                 command = install.call_args.args[0]
