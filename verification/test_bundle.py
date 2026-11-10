@@ -1,12 +1,12 @@
 """Verify the production directory contract without downloading dependencies."""
 
 import importlib.util
-from pathlib import Path
-import tempfile
+import json
 import subprocess
 import sys
+import tempfile
 import unittest
-
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location(
@@ -17,6 +17,25 @@ spec.loader.exec_module(builder)
 
 
 class BundleTests(unittest.TestCase):
+    def test_renderer_revision_uses_locked_flake_input(self):
+        with tempfile.TemporaryDirectory(dir=ROOT) as directory:
+            lock_path = Path(directory) / "flake.lock"
+            lock_path.write_text(
+                json.dumps(
+                    {
+                        "nodes": {
+                            "sdf-view": {
+                                "locked": {"rev": "locked-revision"},
+                                "original": {"rev": "original-revision"},
+                            }
+                        }
+                    }
+                ),
+                encoding="utf-8",
+            )
+            self.assertEqual(builder.renderer_revision(lock_path), "locked-revision")
+        self.assertEqual(builder.RENDERER_REVISION, builder.renderer_revision())
+
     def test_materials_include_one_entry_and_only_required_reference_files(self):
         (ROOT / "results").mkdir(exist_ok=True)
         with tempfile.TemporaryDirectory(dir=ROOT / "results") as directory:

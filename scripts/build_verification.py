@@ -6,16 +6,22 @@ import argparse
 import hashlib
 import json
 import os
-from pathlib import Path
 import platform
 import shutil
 import subprocess
 import tempfile
 import urllib.request
-
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-RENDERER_REVISION = "cfb01c7535db99cec2351408672d069101789596"
+
+
+def renderer_revision(lock_path=ROOT / "flake.lock"):
+    lock = json.loads(lock_path.read_text(encoding="utf-8"))
+    return lock["nodes"]["sdf-view"]["locked"]["rev"]
+
+
+RENDERER_REVISION = renderer_revision()
 WEIGHT_URL = "https://download.pytorch.org/models/alexnet-owt-7be5be79.pth"
 WEIGHT_SHA256 = "7be5be791159472b1fbf3c69796f7cb30dca7ad8466c2df70058c37116cdee02"
 
@@ -129,6 +135,8 @@ def main():
             "build",
             "--locked",
             "--release",
+            "-p",
+            "sdf-view-cli",
             "--target-dir",
             str(work / "renderer-target"),
             cwd=renderer,

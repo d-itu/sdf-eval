@@ -34,8 +34,6 @@ the shell.
 
 - Renderer repository: https://github.com/d-itu/sdf-view
 - Dataset image revision: `51ff7f4f9e026d852520263374056a6af0740bbc`
-- Development shell and production bundle revision:
-  `cfb01c7535db99cec2351408672d069101789596` (0.2.0)
 
 The existing dataset images and the current development renderer use different
 revisions. Use the same renderer version and backend for paired image evaluation.

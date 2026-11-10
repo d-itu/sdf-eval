@@ -25,17 +25,17 @@
     "sdf-view": {
       "flake": false,
       "locked": {
-        "lastModified": 1790418822,
-        "narHash": "sha256-NGJhV7a9ce9LNEa0uapKD0WG9sYmCVjwwUn3nBetEj8=",
+        "lastModified": 1794315292,
+        "narHash": "sha256-3VO+vTVSd16bWj5c1z7a2tPBbIcEB0Hkxz0s9EpxdRs=",
         "owner": "d-itu",
         "repo": "sdf-view",
-        "rev": "cfb01c7535db99cec2351408672d069101789596",
+        "rev": "fe59aa944e81337a4e81725118b83795f47ef182",
         "type": "github"
       },
       "original": {
         "owner": "d-itu",
         "repo": "sdf-view",
-        "rev": "cfb01c7535db99cec2351408672d069101789596",
+        "rev": "fe59aa944e81337a4e81725118b83795f47ef182",
         "type": "github"
       }
     }

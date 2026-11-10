@@ -4,7 +4,7 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/4975466d324710c576dc11ad614684e6bd8cad8e";
     sdf-view = {
-      url = "github:d-itu/sdf-view/cfb01c7535db99cec2351408672d069101789596";
+      url = "github:d-itu/sdf-view/fe59aa944e81337a4e81725118b83795f47ef182";
       flake = false;
     };
   };
@@ -30,6 +30,10 @@
             version = "0.2.0";
             src = sdf-view;
             cargoLock.lockFile = "${sdf-view}/Cargo.lock";
+            cargoBuildFlags = [
+              "-p"
+              "sdf-view-cli"
+            ];
             doCheck = false;
 
             nativeBuildInputs = with pkgs; [
@@ -40,6 +44,11 @@
               vulkan-loader
               wayland
               libxkbcommon
+              libX11
+              libXcursor
+              libXi
+              libXrandr
+              libxcb
             ];
             postFixup = ''
               wrapProgram $out/bin/sdf-view \
@@ -48,6 +57,11 @@
                     pkgs.vulkan-loader
                     pkgs.wayland
                     pkgs.libxkbcommon
+                    pkgs.libX11
+                    pkgs.libXcursor
+                    pkgs.libXi
+                    pkgs.libXrandr
+                    pkgs.libxcb
                   ]
                 }
             '';
