@@ -3,6 +3,7 @@
 
 import argparse
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -14,26 +15,46 @@ from render_views import positive_float
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def prepare(reference, output, distance, renderer, title="SDF Reconstruction"):
-    if not reference.is_file():
-        raise ValueError(f"reference shader is missing: {reference}")
-    distance = positive_float(str(distance))
+def prepare(args):
+    if not args.reference.is_file():
+        raise ValueError(f"reference shader is missing: {args.reference}")
+    distance = positive_float(str(args.distance))
 
-    output = output.resolve()
-    if not output.is_relative_to(ROOT):
-        raise ValueError("output must be inside the repository")
-    if output.exists():
+    output = args.output.resolve()
+    updating = output.exists() and args.update_verification
+    if output.exists() and not args.update_verification:
         raise ValueError(f"output directory already exists: {output}")
+    if updating and not (output / "verification").is_dir():
+        raise ValueError(
+            f"verification directory is missing: {output / 'verification'}"
+        )
     output.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(
         prefix=f".{output.name}-", dir=output.parent
     ) as temporary:
         task = Path(temporary) / "task"
         task.mkdir()
-        prepare_materials(task / "verification", reference)
+        prepare_materials(task / "verification", args.reference)
         (task / "verification/reference/image-config.json").write_text(
             json.dumps({"distance": distance}, indent=2) + "\n", encoding="utf-8"
         )
+        binary_dir = task / "verification/scripts/bin"
+        binary_dir.mkdir()
+        (binary_dir / "sdf-eval").symlink_to(
+            os.path.relpath(
+                args.sdf_eval.resolve(), output / "verification/scripts/bin"
+            )
+        )
+        if updating:
+            current = output / "verification"
+            backup = Path(temporary) / "previous-verification"
+            current.rename(backup)
+            try:
+                (task / "verification").rename(current)
+            except OSError:
+                backup.rename(current)
+                raise
+            return
         (task / "run/output").mkdir(parents=True)
         command = [
             sys.executable,
@@ -42,7 +63,7 @@ def prepare(reference, output, distance, renderer, title="SDF Reconstruction"):
             "--output",
             str(task / "run/input"),
             "--renderer",
-            renderer,
+            args.renderer,
             f"--distance={distance}",
             "--top",
             "--bottom",
@@ -59,9 +80,9 @@ def prepare(reference, output, distance, renderer, title="SDF Reconstruction"):
             (ROOT / "benchmark_prompt.md")
             .read_text(encoding="utf-8")
             .format(
-                title=title,
+                title=args.title,
                 input="Reference views: `input/*.png`. Camera settings: `input/views.json`.",
-                tools=f"Renderer: `{renderer}`. Use the camera settings in `input/views.json`.",
+                tools=f"Renderer: `{args.renderer}`. Use the camera settings in `input/views.json`.",
                 output="Write the completed shader to `output/sdf.glsl`.",
             )
         )
@@ -74,7 +95,12 @@ def main():
     parser.add_argument(
         "--reference", type=Path, required=True, help="Reference GLSL shader file"
     )
-    parser.add_argument("--output", type=Path, required=True, help="New task directory")
+    parser.add_argument("--output", type=Path, required=True, help="Task directory")
+    parser.add_argument(
+        "--update-verification",
+        action="store_true",
+        help="Replace verification/ in an existing task without changing run/ or prompt.md",
+    )
     parser.add_argument(
         "--distance",
         type=positive_float,
@@ -87,16 +113,21 @@ def main():
         help="Renderer executable (CPU: sdf-view-software)",
     )
     parser.add_argument(
+        "--sdf-eval",
+        type=Path,
+        default=ROOT / "target/debug/sdf-eval",
+        help="Evaluator executable to link (default: target/debug/sdf-eval)",
+    )
+    parser.add_argument(
         "--title",
         default="SDF Reconstruction",
         help="Task title (default: SDF Reconstruction)",
     )
     args = parser.parse_args()
     try:
-        prepare(args.reference, args.output, args.distance, args.renderer, args.title)
+        prepare(args)
     except (OSError, ValueError, subprocess.CalledProcessError) as error:
         parser.exit(1, f"error: {error}\n")
-    print(f"Prepared task at {args.output}")
 
 
 if __name__ == "__main__":

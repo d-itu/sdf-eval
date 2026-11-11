@@ -4,13 +4,14 @@ import json
 import sys
 import tempfile
 import unittest
+from argparse import Namespace
 from pathlib import Path
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from prepare_benchmark import prepare
+from prepare_benchmark import main, prepare
 
 
 class PrepareBenchmarkTests(unittest.TestCase):
@@ -24,6 +25,20 @@ class PrepareBenchmarkTests(unittest.TestCase):
         self.reference.write_text("reference shader")
         (self.reference.parent / "metadata.json").write_text('{"unused": true}')
         self.output = root / "task"
+
+    def prepare(self, **overrides):
+        args = Namespace(
+            reference=self.reference,
+            output=self.output,
+            distance=4,
+            renderer="sdf-view",
+            sdf_eval=ROOT / "target/debug/sdf-eval",
+            title="SDF Reconstruction",
+            update_verification=False,
+        )
+        for name, value in overrides.items():
+            setattr(args, name, value)
+        prepare(args)
 
     def fake_render(self, command, check):
         self.assertTrue(check)
@@ -40,7 +55,7 @@ class PrepareBenchmarkTests(unittest.TestCase):
 
     def test_creates_isolated_task_with_matching_cameras(self):
         with patch("prepare_benchmark.subprocess.run", side_effect=self.fake_render):
-            prepare(self.reference, self.output, 4, "sdf-view")
+            self.prepare()
         self.assertEqual(
             {p.name for p in self.output.iterdir()},
             {"run", "verification", "prompt.md"},
@@ -77,23 +92,115 @@ class PrepareBenchmarkTests(unittest.TestCase):
         self.assertTrue(
             (self.output / "verification/scripts/render_views.py").is_file()
         )
+        evaluator = self.output / "verification/scripts/bin/sdf-eval"
+        self.assertTrue(evaluator.is_symlink())
+        self.assertEqual(evaluator.resolve(), ROOT / "target/debug/sdf-eval")
 
     def test_explicit_title(self):
         with patch("prepare_benchmark.subprocess.run", side_effect=self.fake_render):
-            prepare(self.reference, self.output, 4, "sdf-view", "Custom Object")
+            self.prepare(title="Custom Object")
         self.assertIn(
             "# Task Instruction: Custom Object", (self.output / "prompt.md").read_text()
         )
 
+    def test_updates_only_verification_in_existing_task(self):
+        with patch("prepare_benchmark.subprocess.run", side_effect=self.fake_render):
+            self.prepare()
+        (self.output / "run/output/sdf.glsl").write_text("prediction")
+        (self.output / "verification/obsolete.txt").write_text("old")
+        prompt = (self.output / "prompt.md").read_bytes()
+        views = (self.output / "run/input/views.json").read_bytes()
+        self.reference.write_text("updated reference")
+        custom_eval = self.reference.parent / "custom-sdf-eval"
+        custom_eval.touch()
+        with patch("prepare_benchmark.subprocess.run") as render:
+            self.prepare(distance=5, update_verification=True, sdf_eval=custom_eval)
+        render.assert_not_called()
+        self.assertEqual((self.output / "prompt.md").read_bytes(), prompt)
+        self.assertEqual((self.output / "run/input/views.json").read_bytes(), views)
+        self.assertEqual(
+            (self.output / "run/output/sdf.glsl").read_text(), "prediction"
+        )
+        self.assertFalse((self.output / "verification/obsolete.txt").exists())
+        self.assertEqual(
+            (self.output / "verification/reference/sdf.glsl").read_text(),
+            "updated reference",
+        )
+        self.assertEqual(
+            json.loads(
+                (self.output / "verification/reference/image-config.json").read_text()
+            ),
+            {"distance": 5.0},
+        )
+        evaluator = self.output / "verification/scripts/bin/sdf-eval"
+        self.assertTrue(evaluator.is_symlink())
+        self.assertEqual(evaluator.resolve(), custom_eval)
+
+    def test_cli_accepts_custom_sdf_eval(self):
+        custom_eval = self.reference.parent / "custom-sdf-eval"
+        custom_eval.touch()
+        with (
+            patch(
+                "sys.argv",
+                [
+                    "prepare_benchmark.py",
+                    "--reference",
+                    str(self.reference),
+                    "--output",
+                    str(self.output),
+                    "--distance",
+                    "4",
+                    "--sdf-eval",
+                    str(custom_eval.relative_to(Path.cwd())),
+                ],
+            ),
+            patch("prepare_benchmark.subprocess.run", side_effect=self.fake_render),
+        ):
+            main()
+        evaluator = self.output / "verification/scripts/bin/sdf-eval"
+        self.assertTrue(evaluator.is_symlink())
+        self.assertEqual(evaluator.resolve(), custom_eval)
+
+    def test_update_requires_existing_verification(self):
+        self.output.mkdir()
+        with self.assertRaisesRegex(ValueError, "verification directory is missing"):
+            self.prepare(update_verification=True)
+        self.assertEqual(list(self.output.iterdir()), [])
+
+    def test_update_flag_creates_new_task_when_output_is_missing(self):
+        with patch("prepare_benchmark.subprocess.run", side_effect=self.fake_render):
+            self.prepare(update_verification=True)
+        self.assertTrue((self.output / "run/input/views.json").is_file())
+        self.assertTrue(
+            (self.output / "verification/scripts/bin/sdf-eval").is_symlink()
+        )
+
+    def test_failed_update_preserves_existing_task(self):
+        with patch("prepare_benchmark.subprocess.run", side_effect=self.fake_render):
+            self.prepare()
+        original = (self.output / "verification/reference/sdf.glsl").read_text()
+        with (
+            patch(
+                "prepare_benchmark.prepare_materials",
+                side_effect=OSError("copy failed"),
+            ),
+            self.assertRaisesRegex(OSError, "copy failed"),
+        ):
+            self.prepare(distance=5, update_verification=True)
+        self.assertEqual(
+            (self.output / "verification/reference/sdf.glsl").read_text(), original
+        )
+        self.assertTrue((self.output / "run/input/views.json").is_file())
+
     def test_rejects_missing_reference_and_existing_output(self):
         self.reference.unlink()
         with self.assertRaisesRegex(ValueError, "reference shader is missing"):
-            prepare(self.reference, self.output, 4, "sdf-view")
+            self.prepare()
         self.assertFalse(self.output.exists())
         self.reference.write_text("reference shader")
         self.output.mkdir()
         with self.assertRaisesRegex(ValueError, "already exists"):
-            prepare(self.reference, self.output, 4, "sdf-view")
+            self.prepare()
 
     def test_failure_does_not_publish_partial_task(self):
         with (
@@ -103,7 +210,7 @@ class PrepareBenchmarkTests(unittest.TestCase):
             ),
             self.assertRaisesRegex(OSError, "renderer failed"),
         ):
-            prepare(self.reference, self.output, 4, "sdf-view")
+            self.prepare()
         self.assertFalse(self.output.exists())
 
 
