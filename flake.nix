@@ -82,10 +82,8 @@
             SDF_VIEW_SOURCE = "${sdf-view}";
 
             shellHook = ''
-              export CARGO_TARGET_DIR="$PWD/target"
-              export UV_PYTHON_INSTALL_DIR="$PWD/.work/python"
-              export UV_PYTHON_DOWNLOADS=never
               export WGPU_BACKEND=vulkan
+              export SSL_CERT_FILE="${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
               export LD_LIBRARY_PATH="${
                 pkgs.lib.makeLibraryPath [
                   pkgs.vulkan-loader

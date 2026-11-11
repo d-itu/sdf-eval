@@ -1,15 +1,19 @@
 #!/usr/bin/env python3
-"""Prepare one local reconstruction task with multi-view inputs."""
+"""Prepare a local task for the repository's development verifier.
+
+Each task's verification/ contains only its reference shader and camera config.
+Run the repository's verification/scripts/evaluate.py with an explicit reference
+and submission path. Use build_verification.py for standalone production packaging.
+"""
 
 import argparse
 import json
-import os
+import shutil
 import subprocess
 import sys
 import tempfile
 from pathlib import Path
 
-from build_verification import prepare_materials
 from render_views import positive_float
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -34,16 +38,11 @@ def prepare(args):
     ) as temporary:
         task = Path(temporary) / "task"
         task.mkdir()
-        prepare_materials(task / "verification", args.reference)
-        (task / "verification/reference/image-config.json").write_text(
+        reference = task / "verification/reference"
+        reference.mkdir(parents=True)
+        shutil.copy2(args.reference, reference / "sdf.glsl")
+        (reference / "image-config.json").write_text(
             json.dumps({"distance": distance}, indent=2) + "\n", encoding="utf-8"
-        )
-        binary_dir = task / "verification/scripts/bin"
-        binary_dir.mkdir()
-        (binary_dir / "sdf-eval").symlink_to(
-            os.path.relpath(
-                args.sdf_eval.resolve(), output / "verification/scripts/bin"
-            )
         )
         if updating:
             current = output / "verification"
@@ -59,7 +58,7 @@ def prepare(args):
         command = [
             sys.executable,
             str(Path(__file__).with_name("render_views.py")),
-            str(task / "verification/reference/sdf.glsl"),
+            str(reference / "sdf.glsl"),
             "--output",
             str(task / "run/input"),
             "--renderer",
@@ -111,12 +110,6 @@ def main():
         "--renderer",
         default="sdf-view",
         help="Renderer executable (CPU: sdf-view-software)",
-    )
-    parser.add_argument(
-        "--sdf-eval",
-        type=Path,
-        default=ROOT / "target/debug/sdf-eval",
-        help="Evaluator executable to link (default: target/debug/sdf-eval)",
     )
     parser.add_argument(
         "--title",
