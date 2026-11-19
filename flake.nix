@@ -87,7 +87,6 @@
               export LD_LIBRARY_PATH="${
                 pkgs.lib.makeLibraryPath [
                   pkgs.vulkan-loader
-                  pkgs.stdenv.cc.cc.lib
                   pkgs.zlib
                 ]
               }''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
