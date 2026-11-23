@@ -5,6 +5,7 @@ import argparse
 import importlib.util
 import json
 import math
+import stat
 import subprocess
 import sys
 from pathlib import Path
@@ -426,6 +427,16 @@ def validate_destination(parser, path, reference, output, label):
         )
 
 
+def ensure_bin_executable(package):
+    bin_dir = package / "bin"
+    if not bin_dir.is_dir():
+        return
+    for path in bin_dir.iterdir():
+        if path.is_file() and not path.is_symlink():
+            mode = path.stat().st_mode
+            path.chmod(mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+
+
 def main():
     package = Path(__file__).resolve().parent
     parser = argparse.ArgumentParser(
@@ -513,6 +524,7 @@ def main():
     if any(path.resolve() in protected for path in (args.score, args.report) if path):
         parser.error("result files must not overwrite evaluation resources")
     try:
+        ensure_bin_executable(package)
         if args.image_config:
             bootstrap()
         result = score(gt, gen, args.evaluator, args.bounds)

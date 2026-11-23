@@ -94,6 +94,40 @@ class PipelineTests(unittest.TestCase):
             )
             self.assertEqual(json.loads((root / "details.json").read_text()), report)
 
+    def test_entry_restores_executable_bits_on_bundled_binaries(self):
+        with tempfile.TemporaryDirectory(dir=RESULTS) as directory:
+            root = Path(directory)
+            scripts = root / "scripts"
+            binaries = scripts / "bin"
+            binaries.mkdir(parents=True)
+            for name in ("sdf-eval", "sdf-view"):
+                binary = binaries / name
+                binary.write_bytes(b"binary")
+                binary.chmod(0o640)
+            reference, output = root / "reference", root / "output"
+            reference.mkdir()
+            output.mkdir()
+            with (
+                patch.object(evaluate, "__file__", str(scripts / "evaluate.py")),
+                patch.object(
+                    sys,
+                    "argv",
+                    [
+                        "evaluate.py",
+                        "--reference",
+                        str(reference),
+                        "--output",
+                        str(output),
+                        "--score",
+                        str(root / "score.json"),
+                    ],
+                ),
+                patch.object(evaluate, "score", return_value=diagnostic_report()),
+            ):
+                self.assertEqual(evaluate.main(), 0)
+            for binary in binaries.iterdir():
+                self.assertEqual(binary.stat().st_mode & 0o777, 0o751)
+
     def test_cli_rejects_files_as_inputs_and_unsafe_destinations(self):
         with tempfile.TemporaryDirectory(dir=RESULTS) as directory:
             root = Path(directory)
